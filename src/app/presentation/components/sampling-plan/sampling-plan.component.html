@@ -1,0 +1,59 @@
+<div class="max-w-4xl mx-auto p-6">
+
+  <h2 class="text-3xl font-bold text-gray-800 mb-6">
+    Crear Plan de Muestreo
+  </h2>
+
+  <!-- Mensajes de error y éxito -->
+  <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 relative">
+    <span class="block sm:inline">{{ errorMessage }}</span>
+    <button (click)="onCancel()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+      <span class="text-2xl">&times;</span>
+    </button>
+  </div>
+
+  <div *ngIf="successMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 relative">
+    <span class="block sm:inline">{{ successMessage }}</span>
+    <button (click)="onCancel()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+      <span class="text-2xl">&times;</span>
+    </button>
+  </div>
+
+  <!-- FORM -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+
+    <!-- Último plan registrado -->
+    <div *ngIf="lastPlanId" class="mb-4 p-4 bg-blue-50 rounded border border-blue-200">
+      <p class="text-sm text-gray-700">
+        <span class="font-semibold">Último plan registrado:</span> 
+        <span class="text-blue-600 font-bold ml-2">{{ lastPlanId }}</span>
+      </p>
+    </div>  
+
+    <!-- Botón generar -->
+    <div class="flex justify-start mb-4">
+      <button
+        type="button"
+        (click)="generatePlan()"
+        [disabled]="loading"
+        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <span *ngIf="loading" class="inline-block animate-spin mr-2">⟳</span>
+        {{ loading ? 'Generando...' : 'Generar Plan de Muestreo' }}
+      </button>
+    </div>
+
+    <!-- Resultado -->
+    <div *ngIf="generatedPlan" class="mt-4">
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">Plan Generado</h3>
+      <textarea
+        rows="6"
+        readonly
+        [(ngModel)]="generatedPlan"
+        class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+      ></textarea>
+    </div>
+
+  </div>
+
+</div>

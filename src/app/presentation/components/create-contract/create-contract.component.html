@@ -1,0 +1,124 @@
+<div class="max-w-4xl mx-auto p-6">
+
+  <h2 class="text-3xl font-bold text-gray-800 mb-6">Crear Contrato</h2>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-8">
+    <p class="text-gray-600">Cargando...</p>
+  </div>
+
+  <!-- Mensajes -->
+  <div class="mb-4">
+    <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+      {{ successMessage }}
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div *ngIf="!loading">
+
+    <!-- Información general del contrato -->
+    <section class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h3 class="text-xl font-semibold text-gray-700 mb-4">
+        Información del contrato
+      </h3>
+
+      <!-- Cliente -->
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">
+          Cliente
+        </label>
+        <select
+          [(ngModel)]="selectedClient"
+          class="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="" disabled selected>
+            Seleccione un cliente
+          </option>
+          <!-- Opciones futuras -->
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Coordinador -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Coordinador
+          </label>
+          <select
+            [(ngModel)]="selectedCoordinator"
+            class="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled selected>
+              Seleccione un coordinador
+            </option>
+            <!-- Opciones futuras -->
+          </select>
+        </div>
+
+        <!-- Zona -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Zona
+          </label>
+          <select
+            [(ngModel)]="selectedZone"
+            class="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled selected>
+              Seleccione una zona
+            </option>
+            <!-- Opciones futuras -->
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Presupuesto (opcional) -->
+    <section class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">
+        Presupuesto
+      </h3>
+      <p class="text-sm text-gray-500 mb-4">
+        Este campo es opcional. El contrato puede crearse sin presupuesto asignado.
+      </p>
+
+      <select
+        [(ngModel)]="selectedBudget"
+        class="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="" selected>
+          Sin presupuesto asignado
+        </option>
+        <!-- Opciones futuras -->
+      </select>
+    </section>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-4">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="loading"
+        class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors"
+      >
+        {{ loading ? 'Creando...' : 'Crear contrato' }}
+      </button>
+    </div>
+
+  </div>
+
+</div>
