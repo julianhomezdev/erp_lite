@@ -1,17 +1,19 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreateProject, ProjectCreationResult } from '../../domain/Entities/project/project-creation.model';
 import { environment } from '../../environments/development.environment';
+import { CreateProject } from '../../domain/Entities/project/project-creation.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectCreationService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/projectcreation`;
+  
+  private apiUrl = `${environment.apiUrl}/Project`;
 
-  createCompleteProject(project: CreateProject): Observable<ProjectCreationResult> {
-    return this.http.post<ProjectCreationResult>(`${this.apiUrl}/create-complete`, project);
+  constructor(private http: HttpClient) {}
+
+  createCompleteProject(projectDto: CreateProject): Observable<number> {
+    return this.http.post<number>(`${this.apiUrl}/create-complete`, projectDto);
   }
 }

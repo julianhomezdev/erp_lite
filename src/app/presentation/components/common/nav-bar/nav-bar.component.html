@@ -1,0 +1,145 @@
+<div class="w-full h-screen flex flex-col">
+      
+  <div class="w-full h-1/6 flex justify-center items-center mt-5">
+    <img src="logos/logo-main.png" alt="Logo" class="w-40"/>
+  </div>
+  
+  <div class="w-full h-5/6 flex flex-col pt-10 overflow-y-auto">
+    <ul class="w-full flex flex-col gap-1">
+      
+      <!-- Home -->
+      <li class="w-full">
+        
+        <div routerLink="/" 
+        
+             routerLinkActive="bg-blue-400"
+             [routerLinkActiveOptions]="{exact: true}"
+             (click)="toggleSubmenu('home')"
+             class="w-full h-10 flex cursor-pointer justify-between items-center px-4 transition-all duration-200 hover:bg-blue-300 hover:shadow-md">
+          <span>Home</span>
+          <svg class="w-4 h-4 transition-transform duration-200" 
+               [class.rotate-180]="openMenus['home']"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        
+        @if (openMenus['home']) {
+          
+          
+          <ul 
+            class="w-full bg-blue-50 border-l-2 border-blue-400 animate-slideDown">
+          <li routerLink="/dashboard" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Dashboard
+          </li>
+          <li routerLink="/analytics" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Analíticas
+          </li>
+          <li routerLink="/reports" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Reportes
+          </li>
+        </ul>
+          
+        }
+        
+      </li>
+      
+      <!-- Proyectos -->
+      <li class="w-full">
+        <div  
+             routerLinkActive="bg-blue-400"
+             [routerLinkActiveOptions]="{exact: true}"
+             (click)="toggleSubmenu('proyectos')"
+             class="w-full h-10 flex cursor-pointer justify-between items-center px-4 transition-all duration-200 hover:bg-blue-300 hover:shadow-md">
+          <span>Proyectos</span>
+          <svg class="w-4 h-4 transition-transform duration-200" 
+               [class.rotate-180]="openMenus['proyectos']"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        <ul *ngIf="openMenus['proyectos']" 
+            class="w-full bg-blue-50 border-l-2 border-blue-400 animate-slideDown">
+            
+            
+          <li routerLink="/projects-dashboard" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Tablero proyectos
+          </li>
+          <li routerLink="/project-drafts" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Borradores
+          </li>
+          
+          <li routerLink="/planner"
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Nuevo Proyecto
+          </li>
+
+          <li routerLink="/planner/budget" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Presupuestos
+          </li>
+        </ul>
+      </li>
+      
+      <!-- Recursos Humanos -->
+      <li class="w-full">
+        <div routerLink="/rh" 
+             routerLinkActive="bg-blue-400"
+             [routerLinkActiveOptions]="{exact: true}"
+             (click)="toggleSubmenu('rh')"
+             class="w-full h-10 flex cursor-pointer justify-between items-center px-4 transition-all duration-200 hover:bg-blue-300 hover:shadow-md">
+          <span>Recursos Humanos</span>
+          <svg class="w-4 h-4 transition-transform duration-200" 
+               [class.rotate-180]="openMenus['rh']"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        <ul *ngIf="openMenus['rh']" 
+            class="w-full bg-blue-50 border-l-2 border-blue-400 animate-slideDown">
+          <li routerLink="/rh/employees" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Empleados
+          </li>
+        
+        </ul>
+      </li>
+      
+      <!-- Logística -->
+      <li class="w-full">
+        <div routerLink="/logistics"
+             routerLinkActive="bg-blue-400"
+             [routerLinkActiveOptions]="{exact: true}"
+             (click)="toggleSubmenu('logistics')"
+             class="w-full h-10 flex cursor-pointer justify-between items-center px-4 transition-all duration-200 hover:bg-blue-300 hover:shadow-md">
+          <span>Logística</span>
+          <svg class="w-4 h-4 transition-transform duration-200" 
+               [class.rotate-180]="openMenus['logistics']"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+        <ul *ngIf="openMenus['logistics']" 
+            class="w-full bg-blue-50 border-l-2 border-blue-400 animate-slideDown">
+          
+          <li routerLink="/logistics/shipments" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Camionetas
+          </li>
+         
+          <li routerLink="/logistics/tracking" 
+              class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
+            Equipos
+          </li>
+        </ul>
+      </li>
+      
+    </ul>
+  </div>
+  
+</div>

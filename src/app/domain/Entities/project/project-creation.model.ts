@@ -1,68 +1,68 @@
-import { Employee } from "../employee/employee.model";
-import { Equipment } from "../Equipment/equipment.model";
-import { Vehicle } from "../vehicle/vehicle.model";
-
 export interface CreateProject {
-  contract: ContractInfo;
-  coordinator: CoordinatorInfo;
-  projectDetails: ProjectDetails;
-  resources: Resources;
-  budget: Budget;
+  Contract: ContractData;
+  ServiceOrders: ServiceOrder[];
+  CoordinatorIds: number[];
+  ProjectDetails: ProjectDetails;
 }
 
-export interface ContractInfo {
-  contractCode: string;
-  contractName: string;
-  clientName: string;
-  contractValue: number;
-  startDate: string;
-  endDate: string;
+export interface ContractData {
+  ContractCode: string;
+  ContractName: string;
+  ClientId: number;
+  StartDate: string | null;
+  EndDate: string | null;
 }
 
-export interface CoordinatorInfo {
-  coordinatorId: number;
-  zone: string;
-  volume: number;
+export interface ServiceOrder {
+  OdsCode: string;
+  OdsName: string;
+  StartDate: string | null;
+  EndDate: string | null;
+  SamplingPlans: SamplingPlan[];
+}
+
+export interface SamplingPlan {
+  PlanCode: string;
+  StartDate: string | null;
+  EndDate: string | null;
+  Sites: MonitoringSite[];
+  Resources: PlanResources | null;
+  Budget: PlanBudget | null;
+}
+
+export interface MonitoringSite {
+  Name: string;
+  MatrixId: number;
+  ExecutionDate: string | null;
+  HasReport: boolean;
+  HasGDB: boolean;
+}
+
+export interface PlanResources {
+  StartDate: string | null;
+  EndDate: string | null;
+  EmployeeIds: number[];
+  EquipmentIds: number[];
+  VehicleIds: number[];
+}
+
+export interface PlanBudget {
+  CHCode: string;
+  TransportCostChemilab: number;
+  TransportBilledToClient: number;
+  LogisticsCostChemilab: number;
+  LogisticsBilledToClient: number;
+  SubcontractingCostChemilab: number;
+  SubcontractingBilledToClient: number;
+  FluvialTransportCostChemilab: number;
+  FluvialTransportBilledToClient: number;
+  ReportsCostChemilab: number;
+  ReportsBilledToClient: number;
+  Notes: string;
 }
 
 export interface ProjectDetails {
-  projectName: string;
-  projectDescription: string;
-  estimatedDuration: number;
-  priority: string;
-}
-
-export interface Resources {
-  base: string;
-  selectedEmployeeIds: number[];
-  selectedEquipmentIds: number[];
-  selectedVehicleIds: number[];
-}
-
-export interface Budget {
-  personalCost: number;
-  equipmentCost: number;
-  transportCost: number;
-  materialsCost: number;
-  otherCosts: number;
-  notes: string;
-}
-
-export interface ProjectCreationResult {
-  projectCode: string;
-  odsCode: string;
-  budgetCode: string;
-  samplingPlanCode: string;
-  summary: ProjectSummary;
-}
-
-export interface ProjectSummary {
-  contractCode: string;
-  projectName: string;
-  coordinatorName: string;
-  zone: string;
-  selectedEmployees: Employee[];
-  selectedEquipment: Equipment[];
-  selectedVehicles: Vehicle[];
-  totalBudget: number;
+  ProjectName: string;
+  ProjectDescription: string;
+  Priority: string;
 }

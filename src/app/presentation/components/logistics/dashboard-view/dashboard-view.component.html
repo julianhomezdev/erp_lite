@@ -1,0 +1,37 @@
+<div class="w-full h-screen flex flex-col items-center pt-5 gap-5">
+    
+    <!--Vehicles SECTION-->
+    <div class="w-11/12 h-auto bg-white shadow-xl p-8 rounded-3xl border border-gray-200 cursor-pointer">
+        
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Camionetas</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Total Camionetas -->
+            <div class="bg-linear-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-l-4 border-blue-500">
+                <p class="text-sm text-gray-600 font-medium mb-2">Total camionetas</p>
+                <p class="text-4xl font-bold text-gray-800">{{ vehiclesTotal }}</p>
+            </div>
+            
+            <!-- Camionetas Disponibles -->
+            <div class="bg-linear-to-br from-green-50 to-green-100 p-6 rounded-xl border-l-4 border-green-500">
+                <p class="text-sm text-gray-600 font-medium mb-2">Camionetas disponibles</p>
+                <p class="text-4xl font-bold text-gray-800">{{ avaibleVehicles }}</p>
+                <p class="text-sm text-gray-500 mt-1">de {{ vehiclesTotal }}</p>
+            </div>
+            
+           
+            
+        </div>
+        
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</div>

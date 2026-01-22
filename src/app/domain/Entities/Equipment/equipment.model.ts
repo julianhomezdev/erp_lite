@@ -5,6 +5,5 @@ export interface Equipment {
   description: string;
   serialNumber: string;
   status: string;
-  location: string;
   isAvailable: boolean;
 }

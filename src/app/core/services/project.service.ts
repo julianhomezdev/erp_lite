@@ -20,7 +20,6 @@ export interface ProjectRequest {
   project: {
     projectName: string;
     projectDescription: string;
-    estimatedDuration: number;
     priority: string;
   };
   resources: {

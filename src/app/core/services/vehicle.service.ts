@@ -8,14 +8,26 @@ import { environment } from '../../environments/development.environment';
   providedIn: 'root'
 })
 export class VehicleService {
+  
+  
   private http = inject(HttpClient);
+  
+  
   private apiUrl = `${environment.apiUrl}/vehicle`;
 
   getAllVehicles(): Observable<Vehicle[]> {
+    
+    
     return this.http.get<Vehicle[]>(this.apiUrl);
+    
+    
   }
 
   getAvailableVehicles(): Observable<Vehicle[]> {
+    
+    
     return this.http.get<Vehicle[]>(`${this.apiUrl}/available`);
+    
+    
   }
 }
