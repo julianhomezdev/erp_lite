@@ -820,6 +820,53 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       }
     });
   }
+  
+  private calculatePlanBudgetTotals(budgetItems: BudgetItem[]) {
+  const totals = {
+    CHCode: this.planForm.value.chCode || null,
+    TransportCostChemilab: 0,
+    TransportBilledToClient: 0,
+    LogisticsCostChemilab: 0,
+    LogisticsBilledToClient: 0,
+    SubcontractingCostChemilab: 0,
+    SubcontractingBilledToClient: 0,
+    FluvialTransportCostChemilab: 0,
+    FluvialTransportBilledToClient: 0,
+    ReportsCostChemilab: 0,
+    ReportsBilledToClient: 0,
+    Notes: this.planForm.value.notes || null
+  };
+
+  budgetItems.forEach(item => {
+    const itemTotals = this.calculateItemTotal(item);
+    
+    switch(item.category) {
+      case BudgetCategory.TRANSPORT:
+        totals.TransportCostChemilab += itemTotals.cost;
+        totals.TransportBilledToClient += itemTotals.billed;
+        break;
+      case BudgetCategory.LOGISTICS:
+        totals.LogisticsCostChemilab += itemTotals.cost;
+        totals.LogisticsBilledToClient += itemTotals.billed;
+        break;
+      case BudgetCategory.SUBCONTRACTING:
+        totals.SubcontractingCostChemilab += itemTotals.cost;
+        totals.SubcontractingBilledToClient += itemTotals.billed;
+        break;
+      case BudgetCategory.RIVER_TRANSPORT:
+        totals.FluvialTransportCostChemilab += itemTotals.cost;
+        totals.FluvialTransportBilledToClient += itemTotals.billed;
+        break;
+      case BudgetCategory.REPORTS:
+        totals.ReportsCostChemilab += itemTotals.cost;
+        totals.ReportsBilledToClient += itemTotals.billed;
+        break;
+    }
+  });
+
+  return totals;
+}
+  
 
   private buildProjectDto(): CreateProject {
   const contractData = this.contractForm.value;
@@ -847,23 +894,14 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
         EquipmentIds: plan.resources.equipmentIds,
         VehicleIds: plan.resources.vehicleIds
       },
-      Budget: {
-        CHCode: plan.budget.chCode || null,
-        TransportCostChemilab: 0,
-        TransportBilledToClient: 0,
-        LogisticsCostChemilab: 0,
-        LogisticsBilledToClient: 0,
-        SubcontractingCostChemilab: 0,
-        SubcontractingBilledToClient: 0,
-        FluvialTransportCostChemilab: 0,
-        FluvialTransportBilledToClient: 0,
-        ReportsCostChemilab: 0,
-        ReportsBilledToClient: 0,
-        Notes: plan.budget.notes || null
-      }
+      Budget: this.calculatePlanBudgetTotals(plan.budget.items || [])
     }))
   }));
 
+  
+  
+  
+  
   return {
     Contract: {
       ContractCode: contractData.contractCode,

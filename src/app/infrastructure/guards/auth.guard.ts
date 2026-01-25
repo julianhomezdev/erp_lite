@@ -1,33 +1,38 @@
-import {Injectable} from "@angular/core";
-import {CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, GuardResult, MaybeAsync} from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
+import { isPlatformBrowser } from "@angular/common";
+import {inject, Injectable, PLATFORM_ID} from "@angular/core";
 
-@Injectable()
-export class AuthGuard implements CanActivate {
+import {Router, CanActivateChildFn} from "@angular/router";
+
+export const authGuard: CanActivateChildFn = () => {
     
     
-    constructor(private authService: AuthService, private router: Router) {
+    
+    const router = inject(Router);
+    
+    // To verify is it is on browser
+    const platFormId = inject(PLATFORM_ID);
+    
+    
+    // If is not a navigator -> there are not localstorage
+    if(!isPlatformBrowser(platFormId)) {
+        
+        return true;
+        
     }
     
+    const token = localStorage.getItem('auth_token');
     
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    
+    if(!token) {
         
-        
-        if (this.authService.isAuthenticated()) {
-            
-            return true;
-            
-        }
-        
-        this.router.navigate(['/login'], {
-            
-            queryParams: {returnUrl: state.url}
-            
-        })
-        
+        router.navigate(['/login']);
         
         return false;
         
     }
+    
+    
+    return true;
+    
     
 }

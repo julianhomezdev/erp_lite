@@ -26,84 +26,141 @@ export class AuthService {
   public currentUser: Observable<AuthUser | null>;
   
   private platformId = inject(PLATFORM_ID);
+  
   private isBrowser: boolean;
   
   constructor(
+    
     private http: HttpClient,
     private router: Router
+    
+    
   ) {
+    
     this.isBrowser = isPlatformBrowser(this.platformId);
     
-    // Solo accede a localStorage si estás en el navegador
+
     let storedUser = null;
+    
     if (this.isBrowser) {
+      
       const storedUserString = localStorage.getItem(this.USER_KEY);
+      
       storedUser = storedUserString ? JSON.parse(storedUserString) : null;
+      
     }
     
     this.currentUserSubject = new BehaviorSubject<AuthUser | null>(storedUser);
+    
     this.currentUser = this.currentUserSubject.asObservable();
+    
   }
   
   public get currentUserValue(): AuthUser | null {
+    
     return this.currentUserSubject.value;
+    
   }
   
   login(userName: string, password: string): Observable<LoginResponse> {
+    
     const loginRequest: LoginRequest = { userName, password };
     
+    
     return this.http.post<LoginResponse>(`${this.apiUrl}`, loginRequest)
+    
       .pipe(
+        
         tap(response => {
+          
           if (response && response.token && this.isBrowser) {
+            
             localStorage.setItem(this.TOKEN_KEY, response.token);
             
+            
             const user: AuthUser = {
+              
               id: response.user.id,
+              
               userName: response.user.userName,
+              
               token: response.token
+              
             };
+            
             localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+            
+            
             this.currentUserSubject.next(user);
           }
+          
         }),
+        
         catchError(this.handleError)
+        
       );
+      
   }
   
   logout(): void {
+    
     if (this.isBrowser) {
+      
       localStorage.removeItem(this.TOKEN_KEY);
+      
       localStorage.removeItem(this.USER_KEY);
+      
     }
+    
     this.currentUserSubject.next(null);
+    
     this.router.navigate(['/login']);
+    
   }
   
   isAuthenticated(): boolean {
+    
     return !!this.getToken();
+    
   }
   
   getToken(): string | null {
+    
     if (this.isBrowser) {
+      
       return localStorage.getItem(this.TOKEN_KEY);
+      
     }
+    
     return null;
+    
   }
   
   private handleError(error: HttpErrorResponse) {
+    
     let errorMessage = 'Ha ocurrido un error. Intenta de nuevo.';
     
+    
     if (error.status === 401) {
+      
       errorMessage = 'Usuario o contraseña incorrectos';
+      
     } else if (error.status === 500) {
+      
       errorMessage = 'Error en el servidor';
+      
     } else if (error.status === 0) {
+      
       errorMessage = 'No se pudo conectar con el servidor';
+      
     } else if (error.error?.message) {
+      
       errorMessage = error.error.message;
+      
     }
     
     return throwError(() => new Error(errorMessage));
+    
   }
+  
 }
