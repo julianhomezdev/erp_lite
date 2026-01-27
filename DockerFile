@@ -1,31 +1,8 @@
-# Imagen base de Node.js para Windows
-FROM mcr.microsoft.com/windows/servercore:ltsc2019 AS base
 
-# Instala Node.js
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-
-RUN Invoke-WebRequest -Uri https://nodejs.org/dist/v18.19.0/node-v18.19.0-x64.msi -OutFile node.msi; \
-    Start-Process msiexec.exe -ArgumentList '/i', 'node.msi', '/quiet', '/norestart' -NoNewWindow -Wait; \
-    Remove-Item node.msi -Force
-
-# Configura el PATH
-RUN setx /M PATH $($Env:PATH + ';C:\Program Files\nodejs')
-
+FROM node:10.16.3-alpine
 WORKDIR /app
-
-# Copia archivos de dependencias
-COPY package*.json ./
-
-# Instala dependencias
-RUN npm ci --legacy-peer-deps
-
-# Copia el resto del código
+COPY package.json .
+RUN npm install
 COPY . .
-
-# Construye la aplicación (si es necesario)
-RUN npm run build
-
-EXPOSE 3000
-
-# Comando para iniciar la aplicación
-CMD ["npm", "start"]
+EXPOSE 4200 
+CMD npm run start
