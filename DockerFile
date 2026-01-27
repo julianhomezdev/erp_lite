@@ -1,9 +1,20 @@
-
 FROM stefanscherer/node-windows:latest
-
 WORKDIR /app
-COPY package.json .
+
+# Configura npm
 RUN npm config set strict-ssl false
+
+# Instala Angular CLI globalmente
+RUN npm install -g @angular/cli
+
+# Copia e instala dependencias
+COPY package*.json ./
+RUN npm install
+
+# Copia el resto del código
 COPY . .
+
 EXPOSE 4200 
-CMD npm run start
+
+# Inicia con ng serve permitiendo acceso externo
+CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--disable-host-check"]
