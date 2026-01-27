@@ -1,5 +1,5 @@
 
-FROM stefanscherer/node-windows:18-ltsc2019
+FROM stefanscherer/node-windows:latest
 
 WORKDIR /app
 COPY package.json .
