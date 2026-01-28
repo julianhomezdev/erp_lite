@@ -8,8 +8,11 @@ import { forkJoin, Subject, takeUntil } from "rxjs";
 
 
     selector: 'equipments-dashboard',
+    
     standalone: true,
+    
     imports: [CommonModule],
+    
     templateUrl: './equipments-dashboard.component.html'
 
 
@@ -28,13 +31,20 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
 
     equipmentsTotal = 0;   
     equipments: Equipment[] = [];
+    filteredEquipments: Equipment[] = [];
+    
+    selectedFilter: string = 'TODOS';
+    availableCategories: string[] = [];
 
     private destroy$ = new Subject<void>();
 
 
 
     ngOnDestroy(): void {
-
+        
+        this.destroy$.next();
+        
+        this.destroy$.complete();
 
     }
 
@@ -55,9 +65,7 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
         forkJoin({
 
             equipments: this.equipmentService.getAllEquipment(),
-            
-            
-            
+      
         })
         
         .pipe(takeUntil(this.destroy$))
@@ -66,9 +74,13 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
             
             next: (response) => {
 
-                this.equipmentsTotal = response.equipments.length
+                this.equipmentsTotal = response.equipments.length;
                 
-                this.equipments = response.equipments
+                this.equipments = response.equipments;
+                
+                this.filteredEquipments = response.equipments;
+                
+                this.extractCategories();
                                 
                 this.loading = false;
                 
@@ -85,6 +97,45 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
             
         });
         
+        
+    }
+    
+    
+    extractCategories() {
+        
+        const categoriesSet = new Set(this.equipments.map(eq => eq.name));
+        
+        this.availableCategories = Array.from(categoriesSet).sort();
+        
+    }
+    
+    filterByCategory(category: string) {
+        
+        
+        this.selectedFilter = category;
+        
+        if(category === 'TODOS') {
+            
+            this.filteredEquipments = this.equipments;
+            
+        } else {
+            
+            this.filteredEquipments = this.equipments.filter(eq => eq.name === category);
+            
+        }
+        
+    }
+    
+    
+    getCategoryCount(category: string): number {
+        
+        if (category === 'TODOS') {
+            
+            return this.equipments.length;
+            
+        }
+        
+        return this.equipments.filter(eq => eq.name === category).length;
         
     }
 
