@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/node:20-lts
+FROM mcr.microsoft.com/windows/node:20-windowsservercore-ltsc2019
 WORKDIR /app
 
 # Configura npm
