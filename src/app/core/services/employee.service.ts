@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Employee } from '../../domain/Entities/employee/employee.model';
+import { environment } from '../../environments/development.environment';
 
 
 
@@ -11,7 +12,8 @@ import { Employee } from '../../domain/Entities/employee/employee.model';
 export class EmployeeService {
   
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5271/api/Employees';
+  
+  private apiUrl = `${environment.apiUrl}/Employees`;
   
   getAllEmployees(): Observable<Employee[]> {
     return this.http.get<Employee[]>(this.apiUrl);

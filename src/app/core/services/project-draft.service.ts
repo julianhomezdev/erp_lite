@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/development.environment';
 
 
 
@@ -12,7 +13,8 @@ import { Observable } from 'rxjs';
 
 export class ProjectDraftService {
  
-    private apiUrl = 'http://localhost:5271/api/ProjectDraft'
+    private apiUrl = `${environment.apiUrl}/ProjectDraft`;
+    
     
     constructor(private http: HttpClient) {}
     

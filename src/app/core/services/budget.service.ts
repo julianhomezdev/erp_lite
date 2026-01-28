@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { Budget, BudgetItem } from "../../domain/Entities/budget/budget.model";
+import { environment } from "../../environments/development.environment";
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ import { Budget, BudgetItem } from "../../domain/Entities/budget/budget.model";
 export class BudgetService {
   
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5271/api/Budget';
+  private apiUrl = `${environment.apiUrl}/Budget`;
   
   /**
    * Crea un nuevo presupuesto con código automático CH-YYYY-XXXX
