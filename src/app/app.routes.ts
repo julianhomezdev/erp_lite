@@ -62,6 +62,17 @@ export const routes: Routes = [
             .then(m => m.ProjectDraftsPage)
       },
       {
+        
+        path: 'contracts-dashboard',
+        
+        loadComponent: () =>
+          
+          import('./presentation/pages/contract/contract.component')
+        
+        
+          .then(m => m.ContractPage)
+      },
+      {
         path: 'planner',
         loadComponent: () =>
           import('./presentation/pages/project-wizard/project-wizard.component')
