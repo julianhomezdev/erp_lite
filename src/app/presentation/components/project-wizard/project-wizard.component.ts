@@ -254,40 +254,67 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
 
   loadAvailableResources(): void {
-    const startDate = this.planForm.value.resourceStartDate;
-    const endDate = this.planForm.value.resourceEndDate;
+  const startDate = this.planForm.value.resourceStartDate;
+  const endDate = this.planForm.value.resourceEndDate;
 
-    console.log('=== LOADING AVAILABLE RESOURCES ===');
-    console.log('Start Date:', startDate);
-    console.log('End Date:', endDate);
+  if (!startDate || !endDate) {
+    this.availableEmployees = this.employees.map(e => ({ ...e, isAvailable: false }));
+    this.availableEquipment = this.equipment.map(e => ({ ...e, isAvailable: false }));
+    this.availableVehicles = this.vehicles.map(v => ({ ...v, isAvailable: false }));
+    this.resourceDatesSet = false;
+    return;
+  }
 
-    if (!startDate || !endDate) {
-      this.availableEmployees = this.employees;
-      this.availableEquipment = this.equipment;
-      this.availableVehicles = this.vehicles;
-      this.resourceDatesSet = false;
-      return;
+  this.resourceDatesSet = true;
+  this.loading = true;
+
+  // Cargar empleados disponibles
+  this.employeeService.getAvailableEmployees(startDate, endDate).subscribe({
+    next: (employees) => {
+      this.availableEmployees = employees || [];
+      this.checkAllResourcesLoaded();
+    },
+    error: (error) => {
+      console.error('ERROR loading employees:', error);
+      this.availableEmployees = this.employees.map(e => ({ ...e, isAvailable: false }));
+      this.checkAllResourcesLoaded();
     }
+  });
 
-    this.resourceDatesSet = true;
-    this.loading = true;
+  // Cargar equipos disponibles
+  this.equipmentService.getAvailableEquipment(startDate, endDate).subscribe({
+    next: (equipment) => {
+      this.availableEquipment = equipment || [];
+      this.checkAllResourcesLoaded();
+    },
+    error: (error) => {
+      console.error('ERROR loading equipment:', error);
+      this.availableEquipment = this.equipment.map(e => ({ ...e, isAvailable: false }));
+      this.checkAllResourcesLoaded();
+    }
+  });
 
-    this.vehicleService.getAvailableVehicles(startDate, endDate).subscribe({
-      next: (vehicles) => {
-        console.log('=== VEHICLES RECEIVED ===');
-        console.log('Count:', vehicles.length);
-        vehicles.forEach(v => {
-          console.log(`Vehicle: ${v.plateNumber}, CostPerDay: ${v.costPerDay}, IsAvailable: ${v.isAvailable}`);
-        });
-        this.availableVehicles = vehicles || [];
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('ERROR loading vehicles:', error);
-        this.availableVehicles = this.vehicles;
-        this.loading = false;
-      }
-    });
+  // Cargar vehículos disponibles
+  this.vehicleService.getAvailableVehicles(startDate, endDate).subscribe({
+    next: (vehicles) => {
+      this.availableVehicles = vehicles || [];
+      this.checkAllResourcesLoaded();
+    },
+    error: (error) => {
+      console.error('ERROR loading vehicles:', error);
+      this.availableVehicles = this.vehicles.map(v => ({ ...v, isAvailable: false }));
+      this.checkAllResourcesLoaded();
+    }
+  });
+}
+
+  private resourcesLoadedCount = 0;
+  private checkAllResourcesLoaded(): void {
+    this.resourcesLoadedCount++;
+    if (this.resourcesLoadedCount >= 3) {
+      this.loading = false;
+      this.resourcesLoadedCount = 0;
+    }
   }
 
   calculateDaysBetweenDates(startDate: string, endDate: string): number {
