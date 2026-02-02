@@ -1,4 +1,4 @@
-FROM node:20-windowsservercore-ltsc2022
+FROM node:20
 WORKDIR /app
 
 # Configura npm
