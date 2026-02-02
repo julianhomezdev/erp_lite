@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CreateVehicle, UpdateVehicle, Vehicle } from '../../domain/Entities/vehicle/vehicle.model';
 import { environment } from '../../environments/development.environment';
+import { VehicleAssignment } from '../../domain/Entities/vehicle/vehicle-assignment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -40,6 +41,9 @@ export class VehicleService {
     return this.http.get<Vehicle>(`${this.apiUrl}/${id}`);
 
   }
+  
+  
+
 
   createVehicle(vehicle: CreateVehicle): Observable<Vehicle> {
 

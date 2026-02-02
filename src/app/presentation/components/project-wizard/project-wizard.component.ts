@@ -267,11 +267,19 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
   this.resourceDatesSet = true;
   this.loading = true;
+  
+  this.resourcesLoadedCount = 0;
 
-  // Cargar empleados disponibles
   this.employeeService.getAvailableEmployees(startDate, endDate).subscribe({
     next: (employees) => {
-      this.availableEmployees = employees || [];
+      //FIX: Mantener todos los datos del empleado original
+      this.availableEmployees = this.employees.map(emp => {
+        const availableEmp = employees?.find(e => e.id === emp.id);
+        return {
+          ...emp, 
+          isAvailable: availableEmp ? availableEmp.isAvailable : false
+        };
+      });
       this.checkAllResourcesLoaded();
     },
     error: (error) => {
@@ -281,10 +289,16 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
     }
   });
 
-  // Cargar equipos disponibles
   this.equipmentService.getAvailableEquipment(startDate, endDate).subscribe({
     next: (equipment) => {
-      this.availableEquipment = equipment || [];
+      // FIX: Mantener todos los datos del equipo original
+      this.availableEquipment = this.equipment.map(eq => {
+        const availableEq = equipment?.find(e => e.id === eq.id);
+        return {
+          ...eq, 
+          isAvailable: availableEq ? availableEq.isAvailable : false
+        };
+      });
       this.checkAllResourcesLoaded();
     },
     error: (error) => {
@@ -297,7 +311,14 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   // Cargar vehículos disponibles
   this.vehicleService.getAvailableVehicles(startDate, endDate).subscribe({
     next: (vehicles) => {
-      this.availableVehicles = vehicles || [];
+      // FIX: Mantener todos los datos del vehículo original
+      this.availableVehicles = this.vehicles.map(veh => {
+        const availableVeh = vehicles?.find(v => v.id === veh.id);
+        return {
+          ...veh, 
+          isAvailable: availableVeh ? availableVeh.isAvailable : false
+        };
+      });
       this.checkAllResourcesLoaded();
     },
     error: (error) => {
@@ -313,7 +334,6 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
     this.resourcesLoadedCount++;
     if (this.resourcesLoadedCount >= 3) {
       this.loading = false;
-      this.resourcesLoadedCount = 0;
     }
   }
 

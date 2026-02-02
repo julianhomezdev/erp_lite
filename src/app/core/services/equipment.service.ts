@@ -18,6 +18,7 @@ export class EquipmentService {
   }
 
   
+  
 
   getAvailableEquipment(startDate: string, endDate: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/available?startDate=${startDate}&endDate=${endDate}`);
