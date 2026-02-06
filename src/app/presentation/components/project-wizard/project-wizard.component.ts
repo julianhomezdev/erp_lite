@@ -12,7 +12,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, interval, Subscription } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 
-// Servicios
 import { EmployeeService } from '../../../core/services/employee.service';
 import { EquipmentService } from '../../../core/services/equipment.service';
 import { VehicleService } from '../../../core/services/vehicle.service';
@@ -20,11 +19,9 @@ import { ClientService } from '../../../core/services/client.service';
 import { ProjectCoordinatorService } from '../../../core/services/project-coordinator.service';
 import { MatrixService } from '../../../core/services/matrix.service';
 import { ProjectCreationService } from '../../../core/services/project-creation.service';
-// Asumiendo que existe este servicio
 import { ProjectDraftService } from '../../../core/services/project-draft.service';
 
 
-// Modelos
 import { Employee } from '../../../domain/Entities/employee/employee.model';
 import { Vehicle } from '../../../domain/Entities/vehicle/vehicle.model';
 import { Equipment } from '../../../domain/Entities/Equipment/equipment.model';
@@ -32,6 +29,8 @@ import { Client } from '../../../domain/Entities/client/client.model';
 import { Coordinator } from '../../../domain/Entities/coordinator/coordinator.model';
 import { Matrix } from '../../../domain/Entities/matrix/matrix.model';
 import { CreateProject } from '../../../domain/Entities/project/project-creation.model';
+import { OrderServiceService } from '../../../core/services/order-service..service';
+import { ReusableOds, ReusableOdsSummary } from '../../../domain/Entities/orderService/reusable-ods-summary.model';
 
 enum ViewMode {
   CONTRACT = 'contract',
@@ -80,6 +79,7 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   private projectCreationService = inject(ProjectCreationService);
   private draftService = inject(ProjectDraftService);
   private route = inject(ActivatedRoute);
+  private odsService = inject(OrderServiceService);
 
 
   // Enums para el template
@@ -115,6 +115,7 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   vehicles: Vehicle[] = [];
   matrices: Matrix[] = [];
   coordinators: Coordinator[] = [];
+  reusableOdsList: ReusableOdsSummary[] = [];
 
   // UI State
   loading: boolean = false;
@@ -123,6 +124,13 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   successMessage: string = '';
   showFinalDashboard: boolean = false;
   projectResult: number | null = null;
+
+
+  // Estado de nueva ods o reuso
+  // Default nueva ods
+  odsCreationMode: 'new' | 'reuse' = 'new';
+  selectedReusableOdsCode: string | null = null;
+  loadingReusableOds: boolean  = false;
 
   // Modales
   showBudgetItemModal: boolean = false;
@@ -213,7 +221,6 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
     // Agregar un sitio inicial
     this.addSite();
 
-    // Suscribirse a cambios para auto-guardado
     this.contractForm.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.formChanges$.next());
@@ -236,6 +243,176 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
         this.updateVehicleBudgetDays();
       });
   }
+
+  // Metodos de estado de creacion o reuso de ods // Aqui me doy cuenta que debo modularizar esto
+  setOdsCreationMode(mode: 'new' | 'reuse'): void {
+
+    this.odsCreationMode = mode;
+
+    this.selectedReusableOdsCode = null;
+    
+    if(mode === 'new') {
+
+      this.odsForm.reset();
+    }
+
+  }
+
+  addServiceOrderFromReusable(): void {
+
+    if (!this.odsForm.valid || !this.selectedReusableOdsCode) {
+      this.errorMessage = 'Complete el código de la ODS y seleccione una configuración';
+      return;
+    }
+
+    this.loadingReusableOds = true;
+
+    this.odsService.getReusableOds(this.selectedReusableOdsCode).subscribe({
+
+      next: (reusableOds: ReusableOds) => {
+
+        const ods = {
+
+          odsCode: this.odsForm.value.odsCode,
+
+          odsName: this.odsForm.value.odsName || reusableOds.odsName || this.odsForm.value.odsCode,
+
+          startDate: this.odsForm.value.startDate,
+
+          endDate: this.odsForm.value.endDate,
+
+          samplingPlans: this.mapReusablePlansToCurrentProject(reusableOds.samplingPlans || [])
+
+        };
+
+        this.serviceOrders.push(ods);
+
+        this.odsForm.reset();
+
+        this.selectedReusableOdsCode = null;
+
+        this.odsCreationMode = 'new';
+
+        this.errorMessage = '';
+
+        this.successMessage = `ODS "${ods.odsCode}" agregada con ${ods.samplingPlans.length} planes precargados`;
+
+        setTimeout(() => this.successMessage = '', 5000);
+
+        this.formChanges$.next();
+
+        this.loadingReusableOds = false;
+
+      },
+
+      error: (error) => {
+
+        console.error('Error loading reusable ODS:', error);
+
+        this.errorMessage = 'Error al cargar la configuración de ODS reutilizable';
+
+        this.loadingReusableOds = false;
+
+      }
+
+    });
+
+  }
+
+  private mapReusablePlansToCurrentProject(reusablePlans: any[]): any[] {
+
+    return reusablePlans.map(plan => ({
+
+      planCode: plan.planCode || '',
+
+      startDate: null,
+
+      endDate: null,
+
+      sites: (plan.sites || []).map((site: any) => ({
+
+        name: site.name || '',
+
+        matrixId: site.matrixId,
+
+        matrixName: site.matrixName || '',
+
+        isSubcontracted: site.isSubcontracted || false,
+
+        subcontractorName: site.subcontractorName || null,
+
+        executionDate: null,
+
+        hasReport: site.hasReport || false,
+
+        hasGDB: site.hasGDB || false
+
+      })),
+
+      resources: {
+
+        startDate: null,
+
+        endDate: null,
+
+        employeeIds: [],
+
+        equipmentIds: [],
+
+        vehicleIds: [],
+
+        employees: [],
+
+        equipment: [],
+
+        vehicles: []
+
+      },
+      budget: {
+
+        chCode: plan.budget?.chCode || '',
+
+        items: (plan.budget?.items || []).map((item: any) => ({
+
+          id: this.generateId(),
+
+          category: item.category,
+
+          concept: item.concept,
+
+          provider: item.provider || '',
+
+          quantity: item.quantity,
+
+          unit: item.unit,
+
+          costPerUnit: item.costPerUnit,
+
+          billedPerUnit: item.billedPerUnit,
+
+          notes: item.notes || ''
+
+        })),
+
+        summary: null,
+
+        notes: plan.budget?.notes || ''
+
+      }
+
+    }));
+
+
+  }
+
+  getReusableOdsName( code: string): string {
+
+    const ods = this.reusableOdsList.find(o => o.odsCode === code);
+
+    return ods?.odsName || 'ODS';
+
+  }
+
 
   updateVehicleBudgetDays(): void {
     const startDate = this.planForm.value.resourceStartDate;
@@ -275,8 +452,9 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
   this.employeeService.getAvailableEmployees(startDate, endDate).subscribe({
     next: (employees) => {
-      //FIX: Mantener todos los datos del empleado original
+
       this.availableEmployees = this.employees.map(emp => {
+
         const availableEmp = employees?.find(e => e.id === emp.id);
         return {
           ...emp, 
@@ -314,7 +492,7 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   // Cargar vehículos disponibles
   this.vehicleService.getAvailableVehicles(startDate, endDate).subscribe({
     next: (vehicles) => {
-      // FIX: Mantener todos los datos del vehículo original
+
       this.availableVehicles = this.vehicles.map(veh => {
         const availableVeh = vehicles?.find(v => v.id === veh.id);
         return {
@@ -425,28 +603,53 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
    * Carga todos los catálogos necesarios
    */
   loadCatalogs(): void {
+
     this.loading = true;
 
     Promise.all([
+
       this.clientService.getAllClients().toPromise(),
+
       this.employeeService.getAllEmployees().toPromise(),
+
       this.equipmentService.getAllEquipment().toPromise(),
+
       this.vehicleService.getAllVehicles().toPromise(),
+
       this.matrixService.getAllMatrix().toPromise(),
-      this.coordinatorService.getAllCoordinators().toPromise()
-    ]).then(([clients, employees, equipment, vehicles, matrices, coordinators]) => {
+
+      this.coordinatorService.getAllCoordinators().toPromise(),
+
+      this.odsService.getReusableOdsList().toPromise()
+
+    ]) .then(([clients, employees, equipment, vehicles, matrices, coordinators, reusableOds]) => {
+
       this.clients = clients || [];
+
       this.employees = employees || [];
+
       this.equipment = equipment || [];
+
       this.vehicles = vehicles || [];
+
       this.matrices = matrices || [];
+
       this.coordinators = coordinators || [];
+
+      this.reusableOdsList = reusableOds || [];
+
       this.dataReady = true;
+
       this.loading = false;
+
     }).catch(error => {
+
       console.error('Error cargando catálogos:', error);
-      this.errorMessage = 'Error al cargar los datos necesarios';
+
+      this.errorMessage = 'Error al cargar los datos necesarios'
+
       this.loading = false;
+
     });
   }
 
@@ -1069,23 +1272,7 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
     const projectDto = this.buildProjectDto();
 
-    // LOGGING COMPLETO
-    console.log('==========================================');
-    console.log('PROYECTO A ENVIAR AL BACKEND:');
-    console.log('==========================================');
-    console.log(JSON.stringify(projectDto, null, 2));
-    
-    projectDto.ServiceOrders.forEach((ods, odsIdx) => {
-      console.log(`ODS ${odsIdx + 1}: ${ods.OdsCode}`);
-      ods.SamplingPlans.forEach((plan, planIdx) => {
-        console.log(`  Plan ${planIdx + 1}: ${plan.PlanCode}`);
-        console.log(`    Fechas recursos: ${plan.Resources?.StartDate} - ${plan.Resources?.EndDate}`);
-        console.log(`    Vehiculos: ${JSON.stringify(plan.Resources?.VehicleIds)}`);
-        console.log(`    Empleados: ${JSON.stringify(plan.Resources?.EmployeeIds)}`);
-        console.log(`    Equipos: ${JSON.stringify(plan.Resources?.EquipmentIds)}`);
-      });
-    });
-    console.log('==========================================');
+   
 
     this.projectCreationService.createCompleteProject(projectDto).subscribe({
       next: (result) => {

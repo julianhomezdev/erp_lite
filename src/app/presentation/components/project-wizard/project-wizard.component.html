@@ -287,85 +287,133 @@
       </div>
 
       <!-- Nueva ODS -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-        <h3 class="text-base font-semibold text-gray-900 mb-4">
-          Agregar Orden de Servicio
-        </h3>
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+  <h3 class="text-base font-semibold text-gray-900 mb-4">
+    Agregar Orden de Servicio
+  </h3>
 
-        <form [formGroup]="odsForm" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                Código ODS <span class="text-red-600">*</span>
-              </label>
-              <input type="text" formControlName="odsCode"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-                placeholder="Ej: ODS-118631" />
-            </div>
+  <!-- Selector de modo -->
+  <div class="flex gap-2 mb-6">
+    <button type="button" (click)="setOdsCreationMode('new')"
+      [class]="'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ' + 
+        (odsCreationMode === 'new' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')">
+      <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Nueva ODS
+    </button>
+    
+    <button type="button" (click)="setOdsCreationMode('reuse')"
+      [class]="'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ' + 
+        (odsCreationMode === 'reuse' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')">
+      <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+      Reutilizar Configuración
+    </button>
+  </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Nombre ODS</label>
-              <input type="text" formControlName="odsName"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
-                placeholder="Ej: Tocancipá" />
-            </div>
+  <form [formGroup]="odsForm" class="space-y-4">
+    <!-- Selector de ODS reutilizable (solo cuando mode = 'reuse') -->
+    <div *ngIf="odsCreationMode === 'reuse'" class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Seleccionar ODS a Reutilizar <span class="text-red-600">*</span>
+      </label>
+      <select [(ngModel)]="selectedReusableOdsCode" [ngModelOptions]="{standalone: true}"
+        class="w-full px-3 py-2 border border-blue-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm">
+        <option [value]="null">Seleccione una ODS existente</option>
+        <option *ngFor="let ods of reusableOdsList" [value]="ods.odsCode">
+          {{ ods.odsCode }} - {{ods.odsName}} - ({{ ods.quantitySamplingPlans }} planes)
+        </option>
+      </select>
+      <p class="text-xs text-blue-700 mt-2">
+        Se copiarán todos los planes de muestreo con sus sitios y presupuestos. Deberá asignar recursos posteriormente.
+      </p>
+    </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Fecha Inicio</label>
-              <input type="date" formControlName="startDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Fecha Fin</label>
-              <input type="date" formControlName="endDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm" />
-            </div>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" (click)="addServiceOrder()" [disabled]="!odsForm.valid"
-              class="px-6 py-2 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
-              Agregar ODS
-            </button>
-          </div>
-        </form>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+          Código ODS <span class="text-red-600">*</span>
+        </label>
+        <input type="text" formControlName="odsCode"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+          placeholder="Ej: ODS-118631" />
       </div>
 
-      <!-- Coordinadores -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
-        <h3 class="text-base font-semibold text-gray-900 mb-4">
-          Coordinadores del Proyecto
-        </h3>
-
-        <div *ngIf="assignedCoordinators.length > 0" class="mb-4">
-          <div class="flex flex-wrap gap-2">
-            <div *ngFor="let coord of assignedCoordinators; let i = index"
-              class="inline-flex items-center bg-gray-100 border border-gray-300 rounded-md px-3 py-1.5">
-              <span class="text-sm font-medium text-gray-900">{{ coord.coordinatorName }}</span>
-              <button type="button" (click)="removeCoordinator(i)"
-                class="ml-2 text-gray-400 hover:text-red-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <form [formGroup]="coordinatorForm" class="flex gap-3">
-          <select formControlName="coordinatorId"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm">
-            <option value="">Seleccione un coordinador</option>
-            <option *ngFor="let coord of coordinators" [value]="coord.id">{{ coord.name }}</option>
-          </select>
-
-          <button type="button" (click)="addCoordinator()" [disabled]="!coordinatorForm.valid"
-            class="px-4 py-2 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
-            Agregar
-          </button>
-        </form>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nombre ODS</label>
+        <input type="text" formControlName="odsName"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
+          [placeholder]="odsCreationMode === 'reuse' && selectedReusableOdsCode ? 'Se usará el nombre de la ODS seleccionada' : 'Ej: Tocancipá'" />
       </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Fecha Inicio</label>
+        <input type="date" formControlName="startDate"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Fecha Fin</label>
+        <input type="date" formControlName="endDate"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm" />
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button type="button" 
+        (click)="odsCreationMode === 'new' ? addServiceOrder() : addServiceOrderFromReusable()" 
+        [disabled]="!odsForm.valid || (odsCreationMode === 'reuse' && !selectedReusableOdsCode) || loadingReusableOds"
+        class="px-6 py-2 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+        <span *ngIf="loadingReusableOds" class="flex items-center">
+          <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Cargando...
+        </span>
+        <span *ngIf="!loadingReusableOds">Agregar ODS</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Coordinadores -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+  <h3 class="text-base font-semibold text-gray-900 mb-4">
+    Coordinadores del Proyecto
+  </h3>
+
+  <div *ngIf="assignedCoordinators.length > 0" class="mb-4">
+    <div class="flex flex-wrap gap-2">
+      <div *ngFor="let coord of assignedCoordinators; let i = index"
+        class="inline-flex items-center bg-gray-100 border border-gray-300 rounded-md px-3 py-1.5">
+        <span class="text-sm font-medium text-gray-900">{{ coord.coordinatorName }}</span>
+        <button type="button" (click)="removeCoordinator(i)"
+          class="ml-2 text-gray-400 hover:text-red-600 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="coordinatorForm" class="flex gap-3">
+    <select formControlName="coordinatorId"
+      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm">
+      <option value="">Seleccione un coordinador</option>
+      <option *ngFor="let coord of coordinators" [value]="coord.id">{{ coord.name }}</option>
+    </select>
+
+    <button type="button" (click)="addCoordinator()" [disabled]="!coordinatorForm.valid"
+      class="px-4 py-2 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm">
+      Agregar
+    </button>
+  </form>
+</div>
 
       <!-- Finalizar -->
       <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -397,7 +445,7 @@
       </div>
     </div>
 
-    <!-- VISTA: PLAN DE MUESTREO -->
+    <!--  PLAN DE MUESTREO -->
     <div *ngIf="currentView === ViewMode.PLAN_FORM && currentOdsIndex !== -1">
 
       <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
@@ -457,7 +505,6 @@
 
         <form [formGroup]="planForm" class="space-y-8">
 
-          <!-- Información básica -->
           <!-- Información básica -->
           <div>
             <h4 class="text-sm font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
@@ -721,9 +768,7 @@
                 </div>
               </div>
 
-              <!-- Presupuesto -->
-              <!-- Presupuesto -->
-
+          
             </div>
           </div>
 
