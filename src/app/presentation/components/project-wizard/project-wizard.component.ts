@@ -31,6 +31,7 @@ import { Matrix } from '../../../domain/Entities/matrix/matrix.model';
 import { CreateProject } from '../../../domain/Entities/project/project-creation.model';
 import { OrderServiceService } from '../../../core/services/order-service..service';
 import { ReusableOds, ReusableOdsSummary } from '../../../domain/Entities/orderService/reusable-ods-summary.model';
+import { ResourceAssignmentMode } from '../../../domain/enums/resource-assignment-mode.enum';
 
 enum ViewMode {
   CONTRACT = 'contract',
@@ -85,6 +86,24 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   // Enums para el template
   ViewMode = ViewMode;
   BudgetCategory = BudgetCategory;
+  
+  
+  currentResourceMode: ResourceAssignmentMode = ResourceAssignmentMode.QUANTITY;
+  
+  
+  // CATEGORIAS POR PERSONAL, EQUIPOS
+  employeeCategories: string[] = [];
+  equipmentCategories: string[] = [];
+  
+  // Temporales para modo cantidad
+  employeeQuantities: ResourceQuantity[] = [];
+  equipmentQuantities: ResourceQuantity[] = [];
+  vehicleQuantity: number = 0;
+  
+  
+  
+  // Global ch code
+  projectChCode: string = '';
 
   // Estado de la vista
   currentView: ViewMode = ViewMode.CONTRACT;
@@ -184,21 +203,43 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
     // Formulario de plan de muestreo
     this.planForm = this.fb.group({
+      
       planCode: [''],
+      
+      planName: ['', Validators.required],
+      
       startDate: [''],
+      
       endDate: [''],
       
       totalSites: [1, [Validators.required, Validators.min(1)]],
       
+      selectedMatrixIds: [[], Validators.required],
+      
+      matrixId: ['', Validators.required],
+      
+      hasReport: [false],
+      
+      hasGDB: [false],
+      
+      coordinatorId: ['', Validators.required],
+      
       sites: this.fb.array([]),
+      
       resourceStartDate: [''],
+      
       resourceEndDate: [''],
+      
       selectedEmployeeIds: [[], Validators.required],
+      
       selectedEquipmentIds: [[]],
+      
       selectedVehicleIds: [[]],
+      
       budgetItems: [[]],
-      chCode: [''],
+      
       notes: ['']
+      
     });
 
     // Formulario de coordinadores
@@ -244,6 +285,45 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       });
   }
 
+    
+  // Selector para matrices por plan en general
+  toggleMatrixSelection(matrixId: number):void {
+    
+    
+    const current = this.planForm.value.selectedMatrixIds || [];
+    
+    const index = current.indexOf(matrixId)
+    if (index === -1) {
+      
+      this.planForm.patchValue({
+        
+        selectedMatrixIds: [...current, matrixId]
+        
+      });
+      
+    } else {
+      
+      current.splice(index, 1);
+      
+      this.planForm.patchValue({
+        
+        selectedMatrixIds: [...current]
+        
+      });
+      
+    }
+    
+    this.formChanges$.next();
+
+  }
+  
+  isMatrixSelected(matrixId: number): boolean {
+    
+    return (this.planForm.value.selectedMatrixIds || []).includes(matrixId);
+    
+  }
+  
+  
   // Metodos de estado de creacion o reuso de ods // Aqui me doy cuenta que debo modularizar esto
   setOdsCreationMode(mode: 'new' | 'reuse'): void {
 
@@ -637,7 +717,16 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       this.coordinators = coordinators || [];
 
       this.reusableOdsList = reusableOds || [];
+      
+      this.employeeCategories = [...new Set(this.employees
+        
+        .map(e => e.name)
+        .filter(c => c && c.trim() !== '')
+        
+      )];
 
+      this.equipmentCategories = [... new Set(this.equi)]
+      
       this.dataReady = true;
 
       this.loading = false;
@@ -680,22 +769,48 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   }
   
   generateMultipleSites(): void {
+    
     const count = this.planForm.value.totalSites || 1;
+    
+    const planCode = this.planForm.value.planCode;
+    
+    const planName = this.planForm.value.planName;
+    
     const baseName = this.planForm.value.planName || this.planForm.value.planCode;
+    
     const executionDate = this.planForm.value.startDate || '';
+    
+    if(!planCode || !planName) {
+      
+      this.errorMessage = 'Complete el codigo y nombre del plan antes de generar sitios';
+      return;
+      
+    }
+    
     
     this.sitesArray.clear();
     
     
     for (let i = 0; i < count; i++) {
+      
+      const siteName = `${planCode}-${planName}`;
+      
       const siteGroup = this.fb.group({
-        name: [baseName],  
+        
+        name: [siteName],
+          
         matrixId: ['', Validators.required],
+        
         isSubcontracted: [false],
+        
         subcontractorName: [''],
-        executionDate: [executionDate],  
+        
+        executionDate: [executionDate], 
+         
         hasReport: [false],
+        
         hasGDB: [false]
+        
       });
 
       siteGroup.get('isSubcontracted')?.valueChanges
@@ -734,12 +849,17 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
   addSite(): void {
     
-    const baseName = this.planForm.value.planName || this.planForm.value.planCode;
+    const planCode = this.planForm.value.planCode;
+    
+    const planName = this.planForm.value.planName;
+    
+    const siteName = planCode && planName ? `${planCode}-${planName}` : '';
+    
     const executionDate = this.planForm.value.startDate || '';
     
     const siteGroup = this.fb.group({
       
-      name: [baseName],
+      name: [siteName],
       
       matrixId: ['', Validators.required],
       
@@ -971,65 +1091,102 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   }
 
   selectOdsForPlans(index: number): void {
+    
     this.currentOdsIndex = index;
+    
     this.currentView = ViewMode.PLAN_FORM;
+    
+    
+    const ods = this.serviceOrders[index];
+    
+    this.planForm.patchValue({
+      
+      startDate: ods.startDate || '',
+      
+      endDate: ods.endDate || '',
+      
+      resourceStartDate: ods.startDate || '',
+      
+      resourceEndDate: ods.endDate || ''
+      
+      
+    });
+    
+    
+    if (ods.startDate && ods.endDate) {
+      
+      this.loadAvailableResources();
+      
+    }
+    
   }
 
   backToOdsList(): void {
+    
     this.currentView = ViewMode.ODS_LIST;
+    
     this.currentOdsIndex = -1;
+    
+    this.expandedPlanIndex = -1;
+    
     this.resetPlanForm();
+    
   }
 
-  // ==========================================
-  // GESTIÓN DE PLANES DE MUESTREO
-  // ==========================================
-
+ 
   addPlanToCurrentOds(): void {
     
     if (!this.planForm.valid) {
-      
+     
       this.errorMessage = 'Complete los campos requeridos del plan';
       
       return;
-      
+    
     }
 
     if (this.sitesArray.length === 0) {
-      
       this.errorMessage = 'Agregue al menos un sitio de monitoreo';
-      
       return;
-      
     }
 
     if (this.planForm.value.selectedEmployeeIds.length === 0) {
-      
       this.errorMessage = 'Asigne al menos un empleado al plan';
-      
       return;
-      
     }
-
-    const sites = this.sitesArray.value.map((site: any, index: number) => {
-      
-      
-    const matrix = this.matrices.find(m => m.id === Number(site.matrixId));
     
+    if (!this.planForm.value.selectedMatrixIds || this.planForm.value.selectedMatrixIds.length === 0) {
+      this.errorMessage = 'Seleccione al menos una matriz';
+      return;
+    }
+    
+    
+    const selectedMatrices = this.matrices.filter(m => 
+      this.planForm.value.selectedMatrixIds.includes(m.id)
+    );
+    
+    const coordinator = this.coordinators.find(c => c.id === Number(this.planForm.value.coordinatorId));
+    
+    const matrix = this.matrices.find(m => m.id === Number(this.planForm.value.matrixId));
+
+    const sites = this.sitesArray.value.map((site: any) => ({
       
-      return {
-        name: site.name,
-        matrixId: Number(site.matrixId),
-        matrixName: matrix?.matrixName || '',
-        isSubcontracted: site.isSubcontracted,
-        subcontractorName: site.isSubcontracted
-        ? site.subcontractorName?.trim() || null
-        : null,
-        executionDate: site.executionDate,
-        hasReport: site.hasReport,
-        hasGDB: site.hasGDB
-      };
-    });
+      name: site.name,
+      
+      matrixIds: this.planForm.value.selectedMatrixIds,
+      
+      matrixNames: selectedMatrices.map(m => m.matrixName).join(', '),
+      
+      isSubcontracted: site.isSubcontracted,
+      
+      subcontractorName: site.isSubcontracted ? (site.subcontractorName?.trim() || null) : null,
+      
+      executionDate: site.executionDate || null,
+      
+      hasReport: this.planForm.value.hasReport,
+      
+      hasGDB: this.planForm.value.hasGDB
+      
+    }));
 
     const selectedEmployees = this.employees.filter(e =>
       this.planForm.value.selectedEmployeeIds.includes(e.id)
@@ -1043,8 +1200,15 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
     const plan = {
       planCode: this.planForm.value.planCode,
+      planName: this.planForm.value.planName,
       startDate: this.planForm.value.startDate,
       endDate: this.planForm.value.endDate,
+      matrixIds: this.planForm.value.selectedMatrixIds,
+      matrixNames: selectedMatrices.map(m => m.matrixName).join(', '),
+      coordinatorId: Number(this.planForm.value.coordinatorId),
+      coordinatorName: coordinator?.name || '',
+      hasReport: this.planForm.value.hasReport,
+      hasGDB: this.planForm.value.hasGDB,
       sites: sites,
       resources: {
         startDate: this.planForm.value.resourceStartDate,
@@ -1071,6 +1235,14 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
     setTimeout(() => this.successMessage = '', 3000);
     this.formChanges$.next();
   }
+  
+  expandedPlanIndex: number = -1;
+  
+  togglePlanDetails(index: number): void {
+    
+    this.expandedPlanIndex = this.expandedPlanIndex === index ? -1 : index;
+    
+  }
 
   removePlanFromOds(odsIndex: number, planIndex: number): void {
     this.serviceOrders[odsIndex].samplingPlans.splice(planIndex, 1);
@@ -1078,14 +1250,44 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   }
 
   resetPlanForm(): void {
+    
+    
+    const odsStartDate = this.currentOdsIndex !== -1
+      
+      ? this.serviceOrders[this.currentOdsIndex].startDate
+      
+      : '';
+    
+    const odsEndDate = this.currentOdsIndex !== -1
+    
+      ? this.serviceOrders[this.currentOdsIndex].endDate
+      
+      : '';
+    
     this.planForm.reset({
+      
+      startDate: odsStartDate,
+      
+      endDate: odsEndDate,
+      
+      resourceStartDate: odsStartDate, 
+      
+      resourceEndDate: odsEndDate,
+      
       selectedEmployeeIds: [],
+      
       selectedEquipmentIds: [],
+      
       selectedVehicleIds: [],
+      
       budgetItems: []
+      
     });
+    
     this.sitesArray.clear();
+    
     this.addSite();
+    
   }
 
   getPlanBudgetTotal(plan: any): number {
@@ -1252,9 +1454,15 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
 
   canFinalize(): boolean {
+    
     return this.contractForm.valid &&
+    
       this.serviceOrders.length > 0 &&
-      this.assignedCoordinators.length > 0;
+      
+      this.assignedCoordinators.length > 0 &&
+      
+      this.projectChCode.trim() !== '';
+      
   }
 
   finalizeProject(): void {
@@ -1295,46 +1503,82 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   }
 
   private calculatePlanBudgetTotals(budgetItems: BudgetItem[]) {
+    
     const totals = {
-      CHCode: this.planForm.value.chCode || null,
+            
       TransportCostChemilab: 0,
+      
       TransportBilledToClient: 0,
+      
       LogisticsCostChemilab: 0,
+      
       LogisticsBilledToClient: 0,
+      
       SubcontractingCostChemilab: 0,
+      
       SubcontractingBilledToClient: 0,
+      
       FluvialTransportCostChemilab: 0,
+      
       FluvialTransportBilledToClient: 0,
+      
       ReportsCostChemilab: 0,
+      
       ReportsBilledToClient: 0,
+      
       Notes: this.planForm.value.notes || null
+      
     };
 
     budgetItems.forEach(item => {
+      
       const itemTotals = this.calculateItemTotal(item);
+      
 
       switch (item.category) {
+        
         case BudgetCategory.TRANSPORT:
+          
           totals.TransportCostChemilab += itemTotals.cost;
+          
           totals.TransportBilledToClient += itemTotals.billed;
+          
           break;
+          
         case BudgetCategory.LOGISTICS:
+          
           totals.LogisticsCostChemilab += itemTotals.cost;
+          
           totals.LogisticsBilledToClient += itemTotals.billed;
+          
           break;
+          
         case BudgetCategory.SUBCONTRACTING:
+          
           totals.SubcontractingCostChemilab += itemTotals.cost;
+          
           totals.SubcontractingBilledToClient += itemTotals.billed;
+          
           break;
+          
         case BudgetCategory.RIVER_TRANSPORT:
+          
           totals.FluvialTransportCostChemilab += itemTotals.cost;
+          
           totals.FluvialTransportBilledToClient += itemTotals.billed;
+          
           break;
+          
         case BudgetCategory.REPORTS:
+          
           totals.ReportsCostChemilab += itemTotals.cost;
+          
           totals.ReportsBilledToClient += itemTotals.billed;
+          
           break;
+          
       }
+      
     });
 
     return totals;
@@ -1342,70 +1586,109 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
 
   private buildProjectDto(): CreateProject {
-  const contractData = this.contractForm.value;
+    
+    const contractData = this.contractForm.value;
 
-  const serviceOrders = this.serviceOrders.map(ods => ({
-    OdsCode: ods.odsCode,
-    OdsName: ods.odsName,
-    StartDate: ods.startDate || null,
-    EndDate: ods.endDate || null,
-    SamplingPlans: ods.samplingPlans.map((plan: any) => {
+    const serviceOrders = this.serviceOrders.map(ods => ({
       
-      const resourceStartDate = plan.resources?.startDate;
-      const resourceEndDate = plan.resources?.endDate;
+      OdsCode: ods.odsCode,
       
-      console.log(`Plan ${plan.planCode} - Fechas recursos:`, {
-        startDate: resourceStartDate,
-        endDate: resourceEndDate,
-        hasResources: !!(plan.resources?.employeeIds?.length || 
-                        plan.resources?.equipmentIds?.length || 
-                        plan.resources?.vehicleIds?.length)
-      });
-
-      return {
-        PlanCode: plan.planCode,
-        StartDate: plan.startDate || null,
-        EndDate: plan.endDate || null,
-        Sites: plan.sites.map((site: any) => ({
-          Name: site.name,
-          MatrixId: site.matrixId,
-          ExecutionDate: site.executionDate || null,
-          HasReport: site.hasReport,
-          HasGDB: site.hasGDB,
-          IsSubcontracted: site.isSubcontracted,
-          SubcontractorName: site.isSubcontracted ? (site.subcontractorName?.trim() || null) : null
-        })),
-
-        Resources: {
-          StartDate: resourceStartDate || null,
-          EndDate: resourceEndDate || null,
-          EmployeeIds: plan.resources?.employeeIds || [],
-          EquipmentIds: plan.resources?.equipmentIds || [],
-          VehicleIds: plan.resources?.vehicleIds || []
-        },
+      OdsName: ods.odsName,
+      
+      OdsValue: ods.odsValue || 0,
+            
+      StartDate: ods.startDate || null,
+      
+      EndDate: ods.endDate || null,
+      
+      SamplingPlans: ods.samplingPlans.map((plan: any) => {
         
-        Budget: this.calculatePlanBudgetTotals(plan.budget?.items || [])
-      };
-    })
-  }));
+        const resourceStartDate = plan.resources?.startDate;
+        
+        const resourceEndDate = plan.resources?.endDate;
 
-  return {
-    Contract: {
-      ContractCode: contractData.contractCode,
-      ContractName: contractData.contractName || '',
-      ClientId: Number(contractData.clientId),
-      StartDate: contractData.startDate || null,
-      EndDate: contractData.endDate || null
-    },
-    ServiceOrders: serviceOrders,
-    CoordinatorIds: this.assignedCoordinators.map(c => c.coordinatorId),
-    ProjectDetails: {
-      ProjectName: contractData.contractName || contractData.contractCode,
-      ProjectDescription: '',
-      Priority: 'media'
-    }
-  };
-}
+        return {
+          PlanCode: plan.planCode,
+          
+          StartDate: plan.startDate || null,
+          
+          EndDate: plan.endDate || null,
+          
+          CoordinatorId: plan.coordinatorId,
+          
+          Sites: plan.sites.map((site: any) => ({
+            
+            Name: site.name,
+            
+            MatrixIds: site.matrixIds,
+            
+            ExecutionDate: site.executionDate || null,
+            
+            HasReport: site.hasReport,
+            
+            HasGDB: site.hasGDB,
+            
+            IsSubcontracted: site.isSubcontracted,
+            
+            SubcontractorName: site.isSubcontracted ? (site.subcontractorName?.trim() || null) : null
+          
+          })),
+          
+          Resources: {
+            
+            StartDate: resourceStartDate || null,
+            
+            EndDate: resourceEndDate || null,
+            
+            EmployeeIds: plan.resources?.employeeIds || [],
+            
+            EquipmentIds: plan.resources?.equipmentIds || [],
+            
+            VehicleIds: plan.resources?.vehicleIds || []
+            
+          },
+          
+          Budget: this.calculatePlanBudgetTotals(plan.budget?.items || [])
+          
+        };
+        
+      })
+      
+    }));
+
+    return {
+      
+      Contract: {
+        
+        ContractCode: contractData.contractCode,
+        
+        ContractName: contractData.contractName || '',
+        
+        ClientId: Number(contractData.clientId),
+        
+        StartDate: contractData.startDate || null,
+        
+        EndDate: contractData.endDate || null
+        
+      },
+      
+      ChCode: this.projectChCode,
+      
+      ServiceOrders: serviceOrders,
+      
+      CoordinatorIds: this.assignedCoordinators.map(c => c.coordinatorId),
+      
+      ProjectDetails: {
+        
+        ProjectName: contractData.contractName || contractData.contractCode,
+        
+        ProjectDescription: '',
+        
+        Priority: 'media'
+        
+      }
+    };
+  }
 
   createAnotherProject(): void {
     this.router.navigate(['/projects/new']);
@@ -1454,10 +1737,6 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   get budgetCategories() {
     return Object.values(BudgetCategory);
   }
-
-  // ==========================================
-  // GETTERS PARA EL TEMPLATE
-  // ==========================================
 
   get hasAnyPlans(): boolean {
     return this.serviceOrders.some(ods => ods.samplingPlans.length > 0);

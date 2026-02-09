@@ -1,4 +1,6 @@
   export interface CreateProject {
+    
+    ChCode: string;
     Contract: ContractData;
     ServiceOrders: ServiceOrder[];
     CoordinatorIds: number[];
