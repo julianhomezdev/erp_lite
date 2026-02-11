@@ -6,6 +6,9 @@ export interface CreateProject {
     startDate?: string | null;
     endDate?: string | null;
   };
+  
+  chCode: string;
+  
   serviceOrders: Array<{
     odsCode: string;
     odsName?: string;
@@ -64,7 +67,7 @@ export interface CreateProject {
     projectDescription?: string;
     priority: string;
   };
-  chCode: string;  
+  projectResourceAssignementMode?: number;  
 }
   export interface ContractData {
     ContractCode: string;

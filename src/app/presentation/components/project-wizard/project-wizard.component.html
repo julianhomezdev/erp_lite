@@ -314,6 +314,7 @@
         </div>
 
         <form [formGroup]="odsForm" class="space-y-4">
+
           <!-- Selector de ODS reutilizable (solo cuando mode = 'reuse') -->
           <div *ngIf="odsCreationMode === 'reuse'" class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -476,46 +477,67 @@
           </div>
           <div>
             <span class="text-gray-600">Consumido:</span>
-            <p class="font-semibold text-blue-600">${{
-              getOdsBudgetIncludingCurrent(currentOdsIndex).used.toLocaleString() }}</p>
+            <p class="font-semibold text-blue-600">${{ getOdsBudgetSummary(currentOdsIndex).used.toLocaleString() }}</p>
           </div>
           <div>
             <span class="text-gray-600">Disponible:</span>
             <p
-              [class]="'font-semibold ' + (getOdsBudgetIncludingCurrent(currentOdsIndex).available >= 0 ? 'text-emerald-600' : 'text-red-600')">
-              ${{ getOdsBudgetIncludingCurrent(currentOdsIndex).available.toLocaleString() }}
+              [class]="'font-semibold ' + (getOdsBudgetSummary(currentOdsIndex).available >= 0 ? 'text-emerald-600' : 'text-red-600')">
+              ${{ getOdsBudgetSummary(currentOdsIndex).available.toLocaleString() }}
             </p>
           </div>
         </div>
 
         <div class="w-full bg-gray-200 rounded-full h-3">
           <div [class]="'h-3 rounded-full transition-all duration-300 ' + 
-      (getOdsBudgetIncludingCurrent(currentOdsIndex).percentage > 100 ? 'bg-red-600' : 
-       getOdsBudgetIncludingCurrent(currentOdsIndex).percentage > 90 ? 'bg-amber-500' : 'bg-blue-600')"
-            [style.width.%]="getOdsBudgetIncludingCurrent(currentOdsIndex).percentage > 100 ? 100 : getOdsBudgetIncludingCurrent(currentOdsIndex).percentage">
+      (getOdsBudgetSummary(currentOdsIndex).percentage > 100 ? 'bg-red-600' : 
+       getOdsBudgetSummary(currentOdsIndex).percentage > 90 ? 'bg-amber-500' : 'bg-blue-600')"
+            [style.width.%]="getOdsBudgetSummary(currentOdsIndex).percentage > 100 ? 100 : getOdsBudgetSummary(currentOdsIndex).percentage">
           </div>
         </div>
+
         <p class="text-xs text-gray-600 mt-1 text-right">
-          {{ getOdsBudgetIncludingCurrent(currentOdsIndex).percentage.toFixed(1) }}% utilizado
-          <span *ngIf="getCurrentBudgetBilledTotal() > 0" class="ml-2 text-blue-700">
-            (incluye plan actual: ${{ getCurrentBudgetBilledTotal().toLocaleString() }})
-          </span>
+          {{ getOdsBudgetSummary(currentOdsIndex).percentage.toFixed(1) }}% utilizado
         </p>
 
-        <div
-          *ngIf="getOdsBudgetIncludingCurrent(currentOdsIndex).percentage > 90 && getOdsBudgetIncludingCurrent(currentOdsIndex).percentage <= 100"
-          class="mt-3 bg-amber-50 border border-amber-200 rounded p-2">
-          <p class="text-xs text-amber-800">
-            ⚠️ Presupuesto casi agotado. Disponible: ${{
-            getOdsBudgetIncludingCurrent(currentOdsIndex).available.toLocaleString() }}
+        <!-- Mensaje para MODO EDICIÓN -->
+        <div *ngIf="editingPlanId" class="mt-3 bg-gray-100 border border-gray-300 rounded p-2">
+          <p class="text-xs text-gray-700 flex items-center">
+            <svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span><strong>Modo edición:</strong> Los cambios en el presupuesto del plan actual NO afectan el cálculo
+              hasta que guardes.</span>
           </p>
         </div>
 
-        <div *ngIf="getOdsBudgetIncludingCurrent(currentOdsIndex).percentage > 100"
+        <!-- Mensaje para MODO NUEVO PLAN -->
+        <div *ngIf="!editingPlanId && getCurrentBudgetBilledTotal() > 0"
+          class="mt-3 bg-blue-100 border border-blue-300 rounded p-2">
+          <p class="text-xs text-blue-800 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Plan actual: <strong>${{ getCurrentBudgetBilledTotal().toLocaleString() }}</strong> será agregado al
+              presupuesto</span>
+          </p>
+        </div>
+
+        <div
+          *ngIf="getOdsBudgetSummary(currentOdsIndex).percentage > 90 && getOdsBudgetSummary(currentOdsIndex).percentage <= 100"
+          class="mt-3 bg-amber-50 border border-amber-200 rounded p-2">
+          <p class="text-xs text-amber-800">
+            ⚠️ Presupuesto casi agotado. Disponible: ${{ getOdsBudgetSummary(currentOdsIndex).available.toLocaleString()
+            }}
+          </p>
+        </div>
+
+        <div *ngIf="getOdsBudgetSummary(currentOdsIndex).percentage > 100"
           class="mt-3 bg-red-50 border border-red-200 rounded p-2">
           <p class="text-xs text-red-800">
-            ❌ Presupuesto excedido por ${{
-            Math.abs(getOdsBudgetIncludingCurrent(currentOdsIndex).available).toLocaleString() }}
+            ❌ Presupuesto excedido por ${{ Math.abs(getOdsBudgetSummary(currentOdsIndex).available).toLocaleString() }}
           </p>
         </div>
       </div>
@@ -548,11 +570,12 @@
                 <div class="text-xs text-gray-600 mt-2">
                   <span class="font-medium">${{ getPlanBudgetTotal(plan).toLocaleString() }}</span>
                   <span class="mx-2">|</span>
-                  <span *ngIf="plan.resources.employees?.length">{{ plan.resources.employees.length }} personas</span>
-                  <span *ngIf="plan.resources.equipment?.length" class="ml-2">{{ plan.resources.equipment.length }}
+                  <span *ngIf="plan?.resources?.employees?.length">{{ plan.resources.employees.length }} personas</span>
+                  <span *ngIf="plan?.resources?.equipment?.length" class="ml-2">{{ plan.resources.equipment.length }}
                     equipos</span>
-                  <span *ngIf="plan.resources.vehicles?.length" class="ml-2">{{ plan.resources.vehicles.length }}
+                  <span *ngIf="plan?.resources?.vehicles?.length" class="ml-2">{{ plan.resources.vehicles.length }}
                     vehículos</span>
+                  <span *ngIf="!plan?.resources" class="text-amber-600">(Sin recursos asignados)</span>
                 </div>
               </div>
               <button type="button" (click)="removePlanFromOds(currentOdsIndex, idx)"
@@ -943,6 +966,123 @@
             <!-- MODO DETALLADO (tu código existente) -->
             <div *ngIf="currentResourceMode === ResourceAssignmentMode.DETAILED">
 
+              <!-- PANEL GUÍA: recursos requeridos del plan -->
+              <div *ngIf="planRequiredResources" class="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 mb-6">
+
+                <div class="flex items-center gap-2 mb-3">
+                  <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+                  </svg>
+                  <h5 class="text-sm font-bold text-blue-900">Recursos estimados para este plan</h5>
+                  <span class="text-xs text-blue-500 ml-auto italic">Úsalo como guía al seleccionar abajo</span>
+                </div>
+
+                <!-- Tarjetas de requerimiento -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+
+                  <!-- Personal -->
+                  <div class="bg-white rounded-md p-3 border border-blue-200">
+                    <p class="text-xs font-bold text-blue-800 mb-2">👥 Personal necesario</p>
+                    <ng-container *ngIf="hasRequiredEmployees; else noEmployees">
+                      <div *ngFor="let eq of planRequiredResources.employeeQuantities"
+                        class="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                        <span class="text-sm text-gray-700">{{ eq.categoryName }}</span>
+                        <span
+                          class="font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full text-xs min-w-[28px] text-center">
+                          {{ eq.quantity }}
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noEmployees>
+                      <p class="text-xs text-gray-400 italic">Sin requerimiento</p>
+                    </ng-template>
+
+                    <!-- Equipos -->
+                    <ng-container *ngIf="hasRequiredEquipment; else noEquipment">
+                      <div *ngFor="let eq of planRequiredResources.equipmentQuantities"
+                        class="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                        <span class="text-sm text-gray-700">{{ eq.categoryName }}</span>
+                        <span
+                          class="font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full text-xs min-w-[28px] text-center">
+                          {{ eq.quantity }}
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noEquipment>
+                      <p class="text-xs text-gray-400 italic">Sin requerimiento</p>
+                    </ng-template>
+
+                    <!-- Vehículos -->
+                    <ng-container *ngIf="hasRequiredVehicles; else noVehicles">
+                      <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-700">Vehículos</span>
+                        <span
+                          class="font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full text-xs min-w-7 text-center">
+                          {{ planRequiredResources.vehicleQuantity }}
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noVehicles>
+                      <p class="text-xs text-gray-400 italic">Sin requerimiento</p>
+                    </ng-template>
+                  </div>
+                </div>
+
+                <!-- Progreso de selección -->
+                <div class="grid grid-cols-3 gap-3 pt-3 border-t border-blue-200">
+
+                  <div>
+                    <div class="flex justify-between text-xs mb-1">
+                      <span class="text-blue-700 font-medium">Personal</span>
+                      <span class="text-blue-600">
+                        {{ planForm.value.selectedEmployeeIds?.length || 0 }} / {{ getTotalRequiredEmployees() }}
+                      </span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-2">
+                      <div class="h-2 rounded-full transition-all duration-300"
+                        [class]="getSelectionProgress('employees') >= 100 ? 'bg-emerald-500' : 'bg-blue-500'"
+                        [style.width.%]="getSelectionProgress('employees')">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-xs mb-1">
+                      <span class="text-blue-700 font-medium">Equipos</span>
+                      <span class="text-blue-600">
+                        {{ planForm.value.selectedEquipmentIds?.length || 0 }} / {{ getTotalRequiredEquipment() }}
+                      </span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-2">
+                      <div class="h-2 rounded-full transition-all duration-300"
+                        [class]="getSelectionProgress('equipment') >= 100 ? 'bg-emerald-500' : 'bg-blue-500'"
+                        [style.width.%]="getSelectionProgress('equipment')">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-xs mb-1">
+                      <span class="text-blue-700 font-medium">Vehículos</span>
+                      <span class="text-blue-600">
+                        {{ planForm.value.selectedVehicleIds?.length || 0 }} / {{ planRequiredResources.vehicleQuantity
+                        || 0 }}
+                      </span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-2">
+                      <div class="h-2 rounded-full transition-all duration-300"
+                        [class]="getSelectionProgress('vehicles') >= 100 ? 'bg-emerald-500' : 'bg-blue-500'"
+                        [style.width.%]="getSelectionProgress('vehicles')">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
               <div *ngIf="!resourceDatesSet" class="bg-amber-50 border border-amber-200 rounded-md p-4 mb-4">
                 <p class="text-sm text-amber-800">
                   <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -954,10 +1094,54 @@
                 </p>
               </div>
 
-              <!-- Personal detallado -->
+              <!-- Personal detallado con FILTROS Y BÚSQUEDA -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Personal <span
-                    class="text-red-600">*</span></label>
+                <div class="flex justify-between items-center mb-3">
+                  <label class="block text-sm font-medium text-gray-700">Personal <span
+                      class="text-red-600">*</span></label>
+                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {{ planForm.value.selectedEmployeeIds?.length || 0 }} seleccionados
+                  </span>
+                </div>
+
+                <!-- FILTROS Y BÚSQUEDA DE PERSONAL -->
+                <div class="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Buscador -->
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                      </span>
+                      <input type="text" [(ngModel)]="employeeSearchTerm" [ngModelOptions]="{standalone: true}"
+                        placeholder="Buscar por nombre"
+                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900" />
+                    </div>
+
+                    <!-- Filtro por categoría/rol -->
+                    <div>
+                      <select [(ngModel)]="employeeCategoryFilter" [ngModelOptions]="{standalone: true}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900">
+                        <option value="">Todas las posiciones</option>
+                        <option *ngFor="let cat of uniqueEmployeeCategories" [value]="cat">{{ cat }}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Botón limpiar filtros -->
+                  <div class="flex justify-end mt-2" *ngIf="employeeSearchTerm || employeeCategoryFilter">
+                    <button type="button" (click)="employeeSearchTerm = ''; employeeCategoryFilter = ''"
+                      class="text-xs text-gray-600 hover:text-gray-900 flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                      </svg>
+                      Limpiar filtros
+                    </button>
+                  </div>
+                </div>
 
                 <div *ngIf="loading" class="flex items-center justify-center py-8">
                   <svg class="animate-spin h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24">
@@ -970,34 +1154,107 @@
 
                 <div *ngIf="!loading && resourceDatesSet"
                   class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
-                  <div *ngIf="availableEmployees.length === 0" class="text-center py-4">
-                    <p class="text-sm text-gray-600">No hay empleados disponibles</p>
+
+                  <div *ngIf="filteredEmployees.length === 0" class="text-center py-4">
+                    <p class="text-sm text-gray-600">No hay empleados que coincidan con los filtros</p>
                   </div>
-                  <div *ngFor="let employee of availableEmployees" class="py-1.5">
-                    <label class="flex items-center cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors"
+
+                  <div *ngFor="let employee of filteredEmployees" class="py-1.5 border-b border-gray-100 last:border-0">
+                    <label class="flex items-start cursor-pointer hover:bg-white rounded px-2 py-2 transition-colors"
                       [class.opacity-50]="!employee.isAvailable" [class.cursor-not-allowed]="!employee.isAvailable">
+
                       <input type="checkbox" [checked]="isEmployeeSelected(employee.id)"
                         (change)="toggleEmployeeSelection(employee.id)" [disabled]="!employee.isAvailable"
-                        class="w-4 h-4 rounded text-gray-900 border-gray-300" />
+                        class="mt-1 w-4 h-4 rounded text-gray-900 border-gray-300" />
+
                       <div class="ml-3 flex-1">
-                        <span class="text-sm font-medium" [class.text-gray-900]="employee.isAvailable"
-                          [class.text-gray-400]="!employee.isAvailable">
-                          {{ employee.name }}
-                        </span>
-                        <span class="ml-2 text-xs text-gray-500">{{ employee.category }}</span>
-                        <span *ngIf="!employee.isAvailable" class="ml-2 text-xs text-red-600">No disponible</span>
+                        <!-- NOMBRE + POSICIÓN (ROL) -->
+                        <div class="flex items-center flex-wrap gap-2">
+                          <span class="text-sm font-medium" [class.text-gray-900]="employee.isAvailable"
+                            [class.text-gray-400]="!employee.isAvailable">
+                            {{ employee.name }}
+                          </span>
+                          <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                            {{ employee.position || 'Sin rol' }}
+                          </span>
+                        </div>
+
+                        <!-- BASE + DISPONIBILIDAD -->
+                        <div class="flex items-center gap-2 mt-1 text-xs">
+                          <span class="flex items-center text-gray-600">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                              </path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            {{ employee.base || 'Sin base' }}
+                          </span>
+
+                          <span *ngIf="!employee.isAvailable"
+                            class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            No disponible
+                          </span>
+                          <span *ngIf="employee.isAvailable"
+                            class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            Disponible
+                          </span>
+                        </div>
                       </div>
                     </label>
                   </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">
-                  {{ planForm.value.selectedEmployeeIds?.length || 0 }} seleccionados
+
+                <p *ngIf="!resourceDatesSet" class="text-xs text-amber-600 mt-2">
+                  Configure fechas de recursos para ver disponibilidad
                 </p>
               </div>
 
-              <!-- Equipos detallado -->
+              <!-- Equipos detallado con FILTROS Y BÚSQUEDA -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Equipos</label>
+                <div class="flex justify-between items-center mb-3">
+                  <label class="block text-sm font-medium text-gray-700">Equipos</label>
+                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {{ planForm.value.selectedEquipmentIds?.length || 0 }} seleccionados
+                  </span>
+                </div>
+
+                <!-- FILTROS Y BÚSQUEDA DE EQUIPOS -->
+                <div class="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                      </span>
+                      <input type="text" [(ngModel)]="equipmentSearchTerm" [ngModelOptions]="{standalone: true}"
+                        placeholder="Buscar por nombre, código, serial..."
+                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900" />
+                    </div>
+
+                    <div>
+                      <select [(ngModel)]="equipmentCategoryFilter" [ngModelOptions]="{standalone: true}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900">
+                        <option value="">Todos los equipos</option>
+                        <option *ngFor="let cat of uniqueEquipmentCategories" [value]="cat">{{ cat }}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end mt-2" *ngIf="equipmentSearchTerm || equipmentCategoryFilter">
+                    <button type="button" (click)="equipmentSearchTerm = ''; equipmentCategoryFilter = ''"
+                      class="text-xs text-gray-600 hover:text-gray-900 flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                      </svg>
+                      Limpiar filtros
+                    </button>
+                  </div>
+                </div>
 
                 <div *ngIf="loading" class="flex items-center justify-center py-8">
                   <svg class="animate-spin h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24">
@@ -1010,34 +1267,96 @@
 
                 <div *ngIf="!loading && resourceDatesSet"
                   class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
-                  <div *ngIf="availableEquipment.length === 0" class="text-center py-4">
-                    <p class="text-sm text-gray-600">No hay equipos disponibles</p>
+
+                  <div *ngIf="filteredEquipment.length === 0" class="text-center py-4">
+                    <p class="text-sm text-gray-600">No hay equipos que coincidan con los filtros</p>
                   </div>
-                  <div *ngFor="let eq of availableEquipment" class="py-1.5">
-                    <label class="flex items-center cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors"
+
+                  <div *ngFor="let eq of filteredEquipment" class="py-1.5 border-b border-gray-100 last:border-0">
+                    <label class="flex items-start cursor-pointer hover:bg-white rounded px-2 py-2 transition-colors"
                       [class.opacity-50]="!eq.isAvailable" [class.cursor-not-allowed]="!eq.isAvailable">
+
                       <input type="checkbox" [checked]="isEquipmentSelected(eq.id)"
                         (change)="toggleEquipmentSelection(eq.id)" [disabled]="!eq.isAvailable"
-                        class="w-4 h-4 rounded text-gray-900 border-gray-300" />
+                        class="mt-1 w-4 h-4 rounded text-gray-900 border-gray-300" />
+
                       <div class="ml-3 flex-1">
-                        <span class="text-sm font-medium" [class.text-gray-900]="eq.isAvailable"
-                          [class.text-gray-400]="!eq.isAvailable">
-                          {{ eq.name }}
-                        </span>
-                        <span class="ml-2 text-xs text-gray-500">{{ eq.category }}</span>
-                        <span *ngIf="!eq.isAvailable" class="ml-2 text-xs text-red-600">No disponible</span>
+                        <!-- NOMBRE + CÓDIGO -->
+                        <div class="flex items-center flex-wrap gap-2">
+                          <span class="text-sm font-medium" [class.text-gray-900]="eq.isAvailable"
+                            [class.text-gray-400]="!eq.isAvailable">
+                            {{ eq.name }}
+                          </span>
+                          <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                            {{ eq.code || 'Sin código' }}
+                          </span>
+                        </div>
+
+                        <!-- SERIAL + DISPONIBILIDAD -->
+                        <div class="flex items-center gap-2 mt-1 text-xs">
+                          <span class="text-gray-600">
+                            Serial: {{ eq.serialNumber || 'N/A' }}
+                          </span>
+
+                          <span *ngIf="!eq.isAvailable"
+                            class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            No disponible
+                          </span>
+                          <span *ngIf="eq.isAvailable"
+                            class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            Disponible
+                          </span>
+                        </div>
                       </div>
                     </label>
                   </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">
-                  {{ planForm.value.selectedEquipmentIds?.length || 0 }} seleccionados
-                </p>
               </div>
 
-              <!-- Vehículos detallado -->
+              <!-- Vehículos detallado con FILTROS Y BÚSQUEDA -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Vehículos</label>
+                <div class="flex justify-between items-center mb-3">
+                  <label class="block text-sm font-medium text-gray-700">Vehículos</label>
+                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {{ planForm.value.selectedVehicleIds?.length || 0 }} seleccionados
+                  </span>
+                </div>
+
+                <!-- FILTROS Y BÚSQUEDA DE VEHÍCULOS -->
+                <div class="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                      </span>
+                      <input type="text" [(ngModel)]="vehicleSearchTerm" [ngModelOptions]="{standalone: true}"
+                        placeholder="Buscar por placa, marca, modelo..."
+                        class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900" />
+                    </div>
+
+                    <div>
+                      <select [(ngModel)]="vehicleLocationFilter" [ngModelOptions]="{standalone: true}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gray-900 focus:border-gray-900">
+                        <option value="">Todas las ubicaciones</option>
+                        <option *ngFor="let loc of uniqueVehicleLocations" [value]="loc">{{ loc }}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end mt-2" *ngIf="vehicleSearchTerm || vehicleLocationFilter">
+                    <button type="button" (click)="vehicleSearchTerm = ''; vehicleLocationFilter = ''"
+                      class="text-xs text-gray-600 hover:text-gray-900 flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                      </svg>
+                      Limpiar filtros
+                    </button>
+                  </div>
+                </div>
 
                 <div *ngIf="loading" class="flex items-center justify-center py-8">
                   <svg class="animate-spin h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24">
@@ -1050,32 +1369,65 @@
 
                 <div *ngIf="!loading && resourceDatesSet"
                   class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2 bg-gray-50">
-                  <div *ngIf="availableVehicles.length === 0" class="text-center py-4">
-                    <p class="text-sm text-gray-600">No hay vehículos disponibles</p>
+
+                  <div *ngIf="filteredVehicles.length === 0" class="text-center py-4">
+                    <p class="text-sm text-gray-600">No hay vehículos que coincidan con los filtros</p>
                   </div>
-                  <div *ngFor="let vehicle of availableVehicles" class="py-1.5">
-                    <label class="flex items-center cursor-pointer hover:bg-white rounded px-2 py-1 transition-colors"
+
+                  <div *ngFor="let vehicle of filteredVehicles" class="py-1.5 border-b border-gray-100 last:border-0">
+                    <label class="flex items-start cursor-pointer hover:bg-white rounded px-2 py-2 transition-colors"
                       [class.opacity-50]="!vehicle.isAvailable" [class.cursor-not-allowed]="!vehicle.isAvailable">
+
                       <input type="checkbox" [checked]="isVehicleSelected(vehicle.id)"
                         (change)="toggleVehicleSelection(vehicle.id)" [disabled]="!vehicle.isAvailable"
-                        class="w-4 h-4 rounded text-gray-900 border-gray-300" />
+                        class="mt-1 w-4 h-4 rounded text-gray-900 border-gray-300" />
+
                       <div class="ml-3 flex-1">
-                        <span class="text-sm font-medium" [class.text-gray-900]="vehicle.isAvailable"
-                          [class.text-gray-400]="!vehicle.isAvailable">
-                          {{ vehicle.plateNumber }}
-                        </span>
-                        <span class="ml-2 text-xs text-gray-500">{{ vehicle.brand }} {{ vehicle.model }}</span>
-                        <span *ngIf="!vehicle.isAvailable" class="ml-2 text-xs text-red-600">No disponible</span>
+                        <!-- PLACA + MARCA/MODELO -->
+                        <div class="flex items-center flex-wrap gap-2">
+                          <span class="text-sm font-medium" [class.text-gray-900]="vehicle.isAvailable"
+                            [class.text-gray-400]="!vehicle.isAvailable">
+                            {{ vehicle.plateNumber }}
+                          </span>
+                          <span class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                            {{ vehicle.brand || '' }} {{ vehicle.model || '' }}
+                          </span>
+                        </div>
+
+                        <!-- UBICACIÓN + COSTO/DÍA + DISPONIBILIDAD -->
+                        <div class="flex items-center gap-3 mt-1 text-xs">
+                          <span class="flex items-center text-gray-600">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                              </path>
+                            </svg>
+                            {{ vehicle.location || 'Sin ubicación' }}
+                          </span>
+
+                          <span class="text-gray-600">
+                            ${{ vehicle.costPerDay?.toLocaleString() || 0 }}/día
+                          </span>
+
+                          <span *ngIf="!vehicle.isAvailable"
+                            class="px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            No disponible
+                          </span>
+                          <span *ngIf="vehicle.isAvailable"
+                            class="px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            Disponible
+                          </span>
+                        </div>
                       </div>
                     </label>
                   </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">
-                  {{ planForm.value.selectedVehicleIds?.length || 0 }} seleccionados
-                </p>
               </div>
 
             </div>
+
+
+
           </div>
 
           <!-- Presupuesto -->
@@ -1195,13 +1547,28 @@
               class="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors">
               Cancelar
             </button>
-            <button type="button" (click)="addPlanToCurrentOds()"
+            <!-- Botón Agregar Plan (solo cuando es NUEVO plan) -->
+            <button *ngIf="!editingPlanId" type="button" (click)="addPlanToCurrentOds()"
               [disabled]="!planForm.valid || planForm.value.budgetItems?.length === 0"
               class="px-6 py-2.5 bg-emerald-600 text-white rounded-md font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
               Agregar Plan a ODS
+            </button>
+
+            <!-- Botón Guardar y Salir (solo cuando es EDICIÓN de recursos) -->
+            <button *ngIf="editingPlanId" type="button" (click)="saveDetailedResourcesAndExit()"
+              [disabled]="loading || planForm.value.selectedEmployeeIds?.length === 0"
+              class="px-6 py-2.5 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center">
+              <svg *ngIf="loading" class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              <span *ngIf="!loading">✓ Guardar Asignación y Salir</span>
+              <span *ngIf="loading">Guardando...</span>
             </button>
           </div>
 

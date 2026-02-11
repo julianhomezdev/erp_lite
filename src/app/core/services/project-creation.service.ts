@@ -5,7 +5,9 @@ import { environment } from '../../environments/development.environment';
 import { CreateProject } from '../../domain/Entities/project/project-creation.model';
 
 @Injectable({
+  
   providedIn: 'root'
+
 })
 export class ProjectCreationService {
   
@@ -19,14 +21,14 @@ export class ProjectCreationService {
   }
 
 
-  updatePlanResources(planId: number, resourcesData: any): Observable<any> {
-    return this.http.patch(
-
-      `${this.apiUrl}/sampling-plans/${planId}/resources`,
-
-      resourcesData
-
-    );
-
-  }
+  updatePlanResources(planId: number, dto: any): Observable<any> {
+    
+  return this.http.patch(
+    
+    `${this.apiUrl}/sampling-plans/${planId}/resources`,
+    dto 
+    
+  );
+  
+}
 }
