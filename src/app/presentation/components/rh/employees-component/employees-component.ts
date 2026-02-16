@@ -1,6 +1,7 @@
 // employees-component.ts
 import { CommonModule } from "@angular/common";
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { EmployeeService } from "../../../../core/services/employee.service";
 import { forkJoin, Subject, takeUntil } from "rxjs";
 import { Employee } from "../../../../domain/Entities/employee/employee.model";
@@ -9,7 +10,7 @@ import { EmployeeAssignment } from "../../../../domain/Entities/employee/employe
 @Component({
     selector: 'employees-component',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: 'employees-component.html'
 })
 export class EmployeesComponent implements OnInit, OnDestroy {
@@ -23,6 +24,9 @@ export class EmployeesComponent implements OnInit, OnDestroy {
     availableCategories: string[] = [];
     
     filteredEmployees: Employee[] = [];
+    
+    // Búsqueda
+    searchTerm: string = '';
     
     loading = false;
     
@@ -146,14 +150,52 @@ export class EmployeesComponent implements OnInit, OnDestroy {
         
         this.selectedFilter = category;
         
-        if (category === 'TODOS') {
+        this.applyFilters();
+        
+    }
+    
+    // ===== MÉTODOS DE BÚSQUEDA =====
+    
+    onSearchChange() {
+        
+        this.applyFilters();
+        
+    }
+    
+    clearSearch() {
+        
+        this.searchTerm = '';
+        
+        this.applyFilters();
+        
+    }
+    
+    applyFilters() {
+        
+        let result = this.employees;
+        
+        // 1. Filtro por categoría (base)
+        if (this.selectedFilter !== 'TODOS') {
             
-            this.filteredEmployees = this.employees;
+            result = result.filter(emp => emp.base === this.selectedFilter);
             
-        } else {
-            
-            this.filteredEmployees = this.employees.filter(e => e.base === category);
         }
+        
+        // 2. Filtro por búsqueda
+        if (this.searchTerm.trim() !== '') {
+            
+            const searchLower = this.searchTerm.toLowerCase().trim();
+            
+            result = result.filter(emp =>
+                emp.name?.toLowerCase().includes(searchLower) ||
+                emp.base?.toLowerCase().includes(searchLower) ||
+                emp.position?.toLowerCase().includes(searchLower)
+            );
+            
+        }
+        
+        this.filteredEmployees = result;
+        
     }
     
     getCategoryCount(category: string): number {

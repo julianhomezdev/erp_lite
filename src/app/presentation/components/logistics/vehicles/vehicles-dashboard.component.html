@@ -46,6 +46,49 @@
         
     </div>
 
+    <!-- Barra de búsqueda -->
+    <div class="w-11/12 h-auto bg-white shadow-sm p-6 rounded-lg border border-gray-300">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Buscar camionetas</h2>
+        
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            
+            <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                (ngModelChange)="onSearchChange()"
+                placeholder="Buscar por placa, proveedor, marca, modelo o ubicación..."
+                class="block w-full pl-10 pr-10 py-3 text-sm text-gray-900 border border-gray-300 rounded-lg
+                    bg-gray-50 focus:ring-2 focus:ring-slate-500 focus:border-slate-500
+                    transition-all duration-150"
+            />
+            
+            @if (searchTerm) {
+                <button
+                    (click)="clearSearch()"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-gray-700 transition-colors"
+                >
+                    <svg class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            }
+        </div>
+        
+        @if (searchTerm) {
+            
+            <p class="mt-2 text-sm text-gray-600">
+                Mostrando <span class="font-semibold">{{ vehicles.length }}</span> resultado(s) para 
+                "<span class="font-semibold">{{ searchTerm }}</span>"
+                
+            </p>
+        }
+    </div>
+
     <!-- Vehicles Grid -->
     <div class="w-11/12 h-auto bg-white shadow-sm p-8 rounded-lg border border-gray-300 flex justify-center">
 
@@ -71,15 +114,24 @@
         
         @else if (vehicles.length === 0) {
             
-            <div class="flex items-center justify-center py-12">
-                
-                <p class="text-gray-600 text-base">No hay camionetas para mostrar</p>
-                
+            <div class="flex flex-col items-center justify-center py-12 gap-3">
+                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <p class="text-gray-600 text-base">No se encontraron camionetas</p>
+                @if (searchTerm) {
+                    <button
+                        (click)="clearSearch()"
+                        class="text-sm text-slate-600 hover:text-slate-800 underline"
+                    >
+                        Limpiar búsqueda
+                    </button>
+                }
             </div>
             
         }
         
-        
+        @else {
             <div class="w-full h-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
                 @for (item of vehicles; track item.id) {
@@ -105,9 +157,11 @@
                             
                         </h3>
                         
-                        <span> {{ item.supplier }} </span>
+                        <span class="text-sm text-gray-700">{{ item.supplier }}</span>
 
-                        <span>{{ item.brand }} - {{ item.model }}</span>
+                        <span class="text-sm text-gray-700">{{ item.brand }} - {{ item.model }}</span>
+                        
+                        <span class="text-sm text-gray-700">{{ item.location }}</span>
                         
                         
                         <!-- Estado de camioneta -->
@@ -181,7 +235,7 @@
                 }
 
             </div>
-        
+        }
 
     </div>
  

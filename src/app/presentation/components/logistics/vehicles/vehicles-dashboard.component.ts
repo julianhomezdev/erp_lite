@@ -1,5 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { VehicleService } from "../../../../core/services/vehicle.service";
 import { forkJoin, Subject, takeUntil } from "rxjs";
 import { Vehicle } from "../../../../domain/Entities/vehicle/vehicle.model";
@@ -12,7 +13,7 @@ import { VehicleAssignment } from "../../../../domain/Entities/vehicle/vehicle-a
     
     standalone: true,
     
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     
     templateUrl: './vehicles-dashboard.component.html'
 
@@ -27,7 +28,11 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
     vehiclesTotal = 0;
     avaibleVehiclesTotal = 0;
     maintenanceVehiclesTotal = 0;
-    vehicles :Vehicle[] = [];
+    allVehicles: Vehicle[] = [];
+    vehicles: Vehicle[] = [];
+    
+    // Búsqueda
+    searchTerm: string = '';
     
     
     
@@ -61,13 +66,13 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
     
     calculateAvailableVehicles(): number {
         
-        return this.avaibleVehiclesTotal =  this.vehicles.filter(v => v.status === 0 ).length;    
+        return this.avaibleVehiclesTotal = this.allVehicles.filter(v => v.status === 0 ).length;    
         
     }
     
     calculateMaintenanceVehicles(): number {   
         
-        return this.maintenanceVehiclesTotal = this.vehicles.filter(v => v.status === 2).length;
+        return this.maintenanceVehiclesTotal = this.allVehicles.filter(v => v.status === 2).length;
         
     }   
     
@@ -99,13 +104,14 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
                 
                 this.avaibleVehiclesTotal = response.avaibleVehicles.length;
                 
-                this.vehicles = this.mergeVehiclesWithAssignments(
+                this.allVehicles = this.mergeVehiclesWithAssignments(
                     
-                    response.vehicles
-                    ,
+                    response.vehicles,
                     response.assignments
                     
                 );
+                
+                this.vehicles = this.allVehicles;
                 
                 this.avaibleVehiclesTotal = this.calculateAvailableVehicles();
                 
@@ -182,6 +188,36 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
         });
         
         
+        
+    }
+
+    // ===== MÉTODOS DE BÚSQUEDA =====
+    
+    onSearchChange() {
+        
+        if (this.searchTerm.trim() === '') {
+            
+            this.vehicles = this.allVehicles;
+            return;
+            
+        }
+        
+        const searchLower = this.searchTerm.toLowerCase().trim();
+        
+        this.vehicles = this.allVehicles.filter(vehicle =>
+            vehicle.plateNumber?.toLowerCase().includes(searchLower) ||
+            vehicle.supplier?.toLowerCase().includes(searchLower) ||
+            vehicle.brand?.toLowerCase().includes(searchLower) ||
+            vehicle.model?.toLowerCase().includes(searchLower) ||
+            vehicle.location?.toLowerCase().includes(searchLower)
+        );
+        
+    }
+    
+    clearSearch() {
+        
+        this.searchTerm = '';
+        this.vehicles = this.allVehicles;
         
     }
 
