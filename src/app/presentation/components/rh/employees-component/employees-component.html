@@ -118,11 +118,12 @@
                         </h3>
 
                         <!-- Estado de disponibilidad -->
-                        @if (item.isAvailable === true) {
+                        @if (item.status === 1) {
                             <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-medium
                                 bg-emerald-600 text-white rounded">
                                 Disponible
                             </span>
+                            
                         } @else {
                             <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-medium
                                 bg-gray-500 text-white rounded">
@@ -161,7 +162,7 @@
                                                
                                             </div>
                                             <div class="text-xs text-gray-600">
-                                                <p>📅 {{ formatDate(assignment.startDate) }} - {{ formatDate(assignment.endDate) }}</p>
+                                                <p>{{ formatDate(assignment.startDate) }} - {{ formatDate(assignment.endDate) }}</p>
                                             </div>
                                         </div>
                                     }

@@ -25,7 +25,8 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
 
     // Camionetas
     vehiclesTotal = 0;
-    avaibleVehicles = 0;
+    avaibleVehiclesTotal = 0;
+    maintenanceVehiclesTotal = 0;
     vehicles :Vehicle[] = [];
     
     
@@ -53,11 +54,22 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
     ngOnInit(): void {
           
         this.loadAllData();
+        
            
     }
     
- 
     
+    calculateAvailableVehicles(): number {
+        
+        return this.avaibleVehiclesTotal =  this.vehicles.filter(v => v.status === 0 ).length;    
+        
+    }
+    
+    calculateMaintenanceVehicles(): number {   
+        
+        return this.maintenanceVehiclesTotal = this.vehicles.filter(v => v.status === 2).length;
+        
+    }   
     
     loadAllData() {
         
@@ -85,7 +97,7 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
                 
                 this.vehiclesTotal = response.allVehicles.length;
                 
-                this.avaibleVehicles = response.avaibleVehicles.length;
+                this.avaibleVehiclesTotal = response.avaibleVehicles.length;
                 
                 this.vehicles = this.mergeVehiclesWithAssignments(
                     
@@ -94,6 +106,10 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
                     response.assignments
                     
                 );
+                
+                this.avaibleVehiclesTotal = this.calculateAvailableVehicles();
+                
+                this.maintenanceVehiclesTotal = this.calculateMaintenanceVehicles();
                 
                 this.loading = false;
                 
@@ -170,11 +186,12 @@ export class VehiclesDashboard implements OnInit, OnDestroy {
     }
 
 
-    onVehicleClick(vehicleId: number) {
+    // Este metodo sera reemplazado con sincronización por excel
+    /**onVehicleClick(vehicleId: number) {
 
          this.router.navigate(['/logistics/vehicles', vehicleId]);
 
-    }
+    }**/
 
     onAddVehicle() {
 

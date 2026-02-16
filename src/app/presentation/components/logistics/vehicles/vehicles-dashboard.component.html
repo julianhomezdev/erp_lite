@@ -10,26 +10,37 @@
             
             <!-- Total Camionetas -->
             <div class="bg-slate-50 p-6 rounded-lg border-l-4 border-slate-600 cursor-pointer">
+                
                 <p class="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wide">Total camionetas</p>
+                
                 <p class="text-3xl font-semibold text-gray-900">{{ vehiclesTotal }}</p>
+                
             </div>
             
             <!-- Camionetas Disponibles -->
             <div class="bg-slate-50 p-6 rounded-lg border-l-4 border-slate-600">
+                
                 <p class="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wide">Camionetas disponibles</p>
-                <p class="text-3xl font-semibold text-gray-900">{{ avaibleVehicles }}</p>
+                
+                <p class="text-3xl font-semibold text-gray-900">{{ avaibleVehiclesTotal }}</p>
+                
                 <p class="text-xs text-gray-500 mt-1">de {{ vehiclesTotal }}</p>
+                
+            </div>
+            
+            
+            <!-- Camionetas en taller -->
+            <div class="bg-slate-50 p-6 rounded-lg border-l-4 border-slate-600">
+                
+                <p class="text-xs text-gray-600 font-medium mb-2 uppercase tracking-wide">Camionetas en taller</p>
+                
+                <p class="text-3xl font-semibold text-gray-900">{{ maintenanceVehiclesTotal }}</p>
+                
+                <p class="text-xs text-gray-500 mt-1">de {{ vehiclesTotal }}</p>
+                
             </div>
 
-            <button
-                (click)="onAddVehicle()"
-                class="mt-4 self-end inline-flex items-center gap-2
-                    px-5 py-2.5 text-sm font-medium bg-slate-700
-                    text-white rounded-lg cursor-pointer
-                    hover:bg-slate-800 transition-colors"
-            >
-                Agregar camioneta
-            </button>
+            
             
         </div>
         
@@ -39,54 +50,94 @@
     <div class="w-11/12 h-auto bg-white shadow-sm p-8 rounded-lg border border-gray-300 flex justify-center">
 
         @if (loading) {
+            
             <div class="flex items-center justify-center py-12">
+                
                 <p class="text-gray-600 text-base">Cargando camionetas...</p>
+                
             </div>
+            
         }
         
         @else if (error) {
+            
             <div class="flex items-center justify-center py-12">
+                
                 <p class="text-red-700 text-base">{{ error }}</p>
+                
             </div>
+            
         }
         
         @else if (vehicles.length === 0) {
+            
             <div class="flex items-center justify-center py-12">
+                
                 <p class="text-gray-600 text-base">No hay camionetas para mostrar</p>
+                
             </div>
+            
         }
         
-        @else {
+        
             <div class="w-full h-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 
                 @for (item of vehicles; track item.id) {
 
                     <div
-                        (click)="onVehicleClick(item.id)"
+                    
                         class="h-auto rounded-lg p-5 cursor-pointer flex flex-col gap-3 
+                        
                             border hover:shadow-md transition-shadow duration-150"
+                            
                         [ngClass]="{
-                            'bg-emerald-50 border-emerald-300': item.status === 'Available',
-                            'bg-gray-50 border-gray-300': item.status !== 'Available'
+                            
+                            'bg-emerald-50 border-emerald-300': item.status === 0,
+                            
+                            'bg-gray-50 border-gray-300': item.status !== 0
+                            
                         }"
                     >
                         <!-- Placa de la camioneta -->
                         <h3 class="text-base font-semibold text-gray-900">
+                            
                             {{ item.plateNumber }}
+                            
                         </h3>
+                        
+                        <span> {{ item.supplier }} </span>
 
-                        <!-- Estado de disponibilidad -->
-                        @if (item.status === 'Available') {
+                        <span>{{ item.brand }} - {{ item.model }}</span>
+                        
+                        
+                        <!-- Estado de camioneta -->
+                        @if (item.status === 0) {
+                            
                             <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-medium
-                                bg-emerald-600 text-white rounded">
+                                bg-emerald-600 text-white rounded">     
                                 Disponible
+                                
+                            </span>           
+                            
+                        } @else if (item.status === 2) {
+                            
+                            <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-medium
+                                bg-black text-white rounded">
+                                En Taller
                             </span>
-                        } @else {
+   
+                            
+                        }  @else {
+                            
                             <span class="inline-flex items-center justify-center px-3 py-1 text-xs font-medium
                                 bg-gray-500 text-white rounded">
+                                
                                 No Disponible
                             </span>
+                            
                         }
+                        
+                         
                         
                         
                         <div class="flex flex-col gap-2 pt-3 border-t border-gray-200 mt-2">
@@ -114,9 +165,13 @@
                                         </div>
                                     }
                                 </div>
+                                
                             } @else {
+                                
                                 <div class="bg-gray-50 border border-gray-200 rounded p-3 text-center">
+                                    
                                     <p class="text-xs text-gray-500 italic">Sin asignaciones</p>
+                                    
                                 </div>
                             }
                         </div>
@@ -126,7 +181,7 @@
                 }
 
             </div>
-        }
+        
 
     </div>
  
