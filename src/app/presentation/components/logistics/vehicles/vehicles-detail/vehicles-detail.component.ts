@@ -154,7 +154,7 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
                         status: vehicle.status,
                         ownership: ownership,
                         costPerDay: vehicle.costPerDay,
-                        supplierId: vehicle.supplierId,
+                        supplierId: vehicle.supplier,
                         locationId: null
                     });
 

@@ -6,10 +6,10 @@ export interface Vehicle {
     brand?: string;
     model?: string;
     year?: number;
-    status: string;
+    status: number;
     ownership?: number;
     costPerDay?: number;
-    supplierId?: number;
+    supplier?:string;
     locationId?: number;
     location: string;
     assignments: VehicleAssignment[];

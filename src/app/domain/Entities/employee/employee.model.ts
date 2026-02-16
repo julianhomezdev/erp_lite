@@ -10,5 +10,6 @@ export interface Employee {
     base: string;
     isAvailable: boolean;
     assignments?: EmployeeAssignment[];
+    status: number;
   
 }
