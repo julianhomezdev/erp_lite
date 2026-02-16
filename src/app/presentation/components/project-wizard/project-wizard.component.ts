@@ -1306,7 +1306,7 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
     this.serviceOrders[this.currentOdsIndex].samplingPlans.push(planData);
 
-    console.log('✅ PLAN GUARDADO CON CANTIDADES:', {
+    console.log('PLAN GUARDADO CON CANTIDADES:', {
       mode: planData.resourceAssignmentMode,
       employeeQtys: planData.employeeQuantities,
       equipmentQtys: planData.equipmentQuantities,
@@ -1493,8 +1493,11 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   }
 
   removeCoordinator(index: number): void {
+    
     this.assignedCoordinators.splice(index, 1);
+    
     this.formChanges$.next();
+    
   }
 
   saveDraft(isAutoSave: boolean = false): void {
@@ -1520,7 +1523,6 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       Coordinators: this.assignedCoordinators || []
     };
 
-    console.log('DATOS A ENVIAR:', JSON.stringify(draftData, null, 2));
 
     if (isAutoSave) {
       this.autoSaving = true;
@@ -2033,19 +2035,19 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
   this.projectCreationService.updatePlanResources(this.editingPlanId, dto).subscribe({
     next: (response) => {
-      this.successMessage = '✅ Recursos asignados exitosamente';
+      this.successMessage = 'Recursos asignados exitosamente';
       this.loading = false;
       setTimeout(() => this.router.navigate(['/projects-dashboard']), 1500);
     },
     error: (error) => {
-      console.error('❌ Error completo:', error);
-      console.error('❌ Error.error:', error.error);
-      console.error('❌ Errores de validación:', error.error?.errors); // 👈 IMPORTANTE
-      console.error('❌ Status:', error.status);
+      console.error('Error completo:', error);
+      console.error('Error.error:', error.error);
+      console.error('Errores de validación:', error.error?.errors); 
+      console.error('Status:', error.status);
       
       // Mostrar errores de validación
       if (error.error?.errors) {
-        console.error('📋 DETALLES DE VALIDACIÓN:');
+        console.error('DETALLES DE VALIDACIÓN:');
         Object.keys(error.error.errors).forEach(key => {
           console.error(`  - ${key}:`, error.error.errors[key]);
         });

@@ -1,5 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { EquipmentService } from "../../../../core/services/equipment.service";
 import { Equipment } from "../../../../domain/Entities/Equipment/equipment.model";
 import { forkJoin, Subject, takeUntil } from "rxjs";
@@ -12,7 +13,7 @@ import { EquipmentAssignment } from "../../../../domain/Entities/Equipment/equip
     
     standalone: true,
     
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     
     templateUrl: './equipments-dashboard.component.html'
 
@@ -36,6 +37,7 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
     
     selectedFilter: string = 'TODOS';
     availableCategories: string[] = [];
+    searchTerm: string = '';
 
     private destroy$ = new Subject<void>();
 
@@ -174,15 +176,49 @@ export class EquipmentsDashboard implements OnInit, OnDestroy {
         
         this.selectedFilter = category;
         
-        if(category === 'TODOS') {
+        this.applyFilters();
+        
+    }
+    
+    onSearchChange() {
+        
+        this.applyFilters();
+        
+    }
+    
+    clearSearch() {
+        
+        this.searchTerm = '';
+        
+        this.applyFilters();
+        
+    }
+    
+    applyFilters() {
+        
+        let result = this.equipments;
+        
+        // Filtro por categoría
+        if (this.selectedFilter !== 'TODOS') {
             
-            this.filteredEquipments = this.equipments;
-            
-        } else {
-            
-            this.filteredEquipments = this.equipments.filter(eq => eq.name === category);
+            result = result.filter(eq => eq.name === this.selectedFilter);
             
         }
+        
+        // Filtro por búsqueda
+        if (this.searchTerm.trim() !== '') {
+            
+            const searchLower = this.searchTerm.toLowerCase().trim();
+            
+            result = result.filter(eq => 
+                eq.code.toLowerCase().includes(searchLower) ||
+                eq.serialNumber.toLowerCase().includes(searchLower) ||
+                eq.name.toLowerCase().includes(searchLower)
+            );
+            
+        }
+        
+        this.filteredEquipments = result;
         
     }
     
