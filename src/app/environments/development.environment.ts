@@ -1,10 +1,11 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5271/api',
+  apiUrl: 'http://192.168.1.78:5271/api',
   apiTimeout: 30000,
   version: '1.0.0-dev',
   enableDebug: true
 };
 
+//PROD
 //192.168.1.78:5271
 //localhost:5271
