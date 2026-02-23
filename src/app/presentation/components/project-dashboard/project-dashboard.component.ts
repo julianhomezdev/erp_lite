@@ -32,11 +32,24 @@ export class ProjectDashboardComponent implements OnInit {
   }
 
   editResources(planId: number): void {
+    
     const plan = this.findPlanById(planId);
+    
     if (plan) {
+      
       this.selectedPlanForEdit = plan;
+      
       this.showResourceEditModal = true;
+      
     }
+  }
+  
+  getPendingCount(): number {
+    return this.filteredProjects.filter(p => p.projectResourceAssignementMode === 0).length;
+  }
+
+  getAssignedCount(): number {
+    return this.filteredProjects.filter(p => p.projectResourceAssignementMode !== 0).length;
   }
 
   assignDetailedResources(planId: number): void {
@@ -74,7 +87,6 @@ export class ProjectDashboardComponent implements OnInit {
   
   
   navigateToAssignResources(planId: number, projectId: number): void {
-    // Encontrar el índice de la ODS que contiene este plan
     let odsIndex = -1;
     
     if (this.selectedProject?.serviceOrders) {
@@ -87,7 +99,6 @@ export class ProjectDashboardComponent implements OnInit {
       }
     }
     
-    // Navegar al wizard con parámetros
     this.router.navigate(['/planner'], {
       queryParams: {
         mode: 'edit-resources',
@@ -115,6 +126,26 @@ export class ProjectDashboardComponent implements OnInit {
   }
   
   
+  // Necesito modificar el back para que pueda incluir los coordinadores de todos los pm del project para poder mostrarlos en la card general
+  
+  // Metodo para poder mostrar coordinadores de todo el proyeto en la card general
+  // Estructura del proyecto para llegar a coords
+  // project -> serviceOrders[] -> samplingPlans[] -> coordinatorName
+  
+  /**getUniqueCoordinators(project: any): string[] {
+    
+    
+    if (!project || !project.serviceOrders?.length) return [];
+    if (!project?.serviceOrders) return [];
+    
+    return [...new Set<string>(
+      project.serviceOrders
+        .flatMap((ods: any) => ods?.samplingPlans ?? [])
+        .map((plan: any) => plan?.coordinatorName as string)
+        .filter((name: string) => !!name)
+    )];
+  }**/
+  
 
   closeResourceEditModal(): void {
     this.showResourceEditModal = false;
@@ -133,6 +164,10 @@ export class ProjectDashboardComponent implements OnInit {
     this.projectService.getAllProjects().subscribe({
       next: (data) => {
         this.projects = data;
+        
+        console.log(data);
+        
+        
         this.filteredProjects = [...data];
         this.loading = false;
       },
