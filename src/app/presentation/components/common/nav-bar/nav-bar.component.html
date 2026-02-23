@@ -109,7 +109,7 @@
             class="w-full bg-blue-50 border-l-2 border-blue-400 animate-slideDown">
           <li routerLink="/rh/Employees" 
               class="w-full h-9 flex cursor-pointer items-center pl-8 pr-4 transition-all duration-200 hover:bg-blue-200 text-sm">
-            Empleados
+            Personal
           </li>
         
         </ul>
@@ -146,5 +146,28 @@
       
     </ul>
   </div>
+  
+  <div class="w-full h-20 flex items-center px-4 bg-gray-400 backdrop-blur-sm 
+            rounded-lg shadow-sm border border-gray-200">
+
+  <!-- Avatar -->
+  <div class="w-2/6 h-full flex items-center justify-center">
+    <div class="w-11 h-11 flex items-center justify-center 
+                rounded-full bg-gray-100 border border-gray-300">
+      <span class="icon-[bxs--user] text-xl text-gray-600"></span>
+    </div>
+  </div>
+
+  <!-- Usuario -->
+  <div class="w-4/6 h-full flex items-center">
+    <p class="text-base font-medium text-gray-800 truncate">
+      {{ loggedUser }}
+    </p>
+  </div>
+
+</div>
+
+
+  
   
 </div>

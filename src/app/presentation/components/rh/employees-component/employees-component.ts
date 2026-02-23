@@ -209,6 +209,26 @@ export class EmployeesComponent implements OnInit, OnDestroy {
         
     }
     
+    getWorkDaysArray(employee: Employee): string[] {
+        
+        return Array.from({ length: employee.workDaysPerMonth }, (_, i) =>
+            
+            i < employee.workDays ? 'Trabajo' : 'Vacio'
+            
+        );
+        
+    }
+
+    getOffDaysArray(employee: Employee): string[] {
+        
+        return Array.from({ length: employee.daysOffPerMonth }, (_, i) =>
+            
+            i < employee.DaysOff ? 'Descanso' : 'Vacio'
+            
+        );
+        
+    }
+    
     formatDate(dateString: string): string {
         
         const date = new Date(dateString);

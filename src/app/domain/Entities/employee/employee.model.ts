@@ -11,5 +11,9 @@ export interface Employee {
     isAvailable: boolean;
     assignments?: EmployeeAssignment[];
     status: number;
+    workDays: number;
+    DaysOff: number;
+    workDaysPerMonth: number;  
+    daysOffPerMonth: number;
   
 }

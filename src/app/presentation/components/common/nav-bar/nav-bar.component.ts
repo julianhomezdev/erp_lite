@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 
 import { RouterLink, RouterLinkActive } from "@angular/router";
 
@@ -18,7 +18,58 @@ import { CommonModule } from "@angular/common";
     
 })
 
-export class NavBarComponent {
+export class NavBarComponent implements OnInit, OnDestroy {
+  
+  loggedUser: string =  '';
+  
+  
+  ngOnDestroy(): void {
+    throw new Error("Method not implemented.");
+  }
+  ngOnInit(): void {
+    
+    
+    this.loadUserName();
+    
+  }
+  
+  
+  
+  loadUserName(): void {
+        
+        if (typeof window === 'undefined') {
+            
+            return;
+            
+        }
+        
+        const authUserRaw = localStorage.getItem('auth_user');
+        
+        if ( !authUserRaw ) {
+            
+            console.warn('No auth user in localstorage');
+            
+            return;
+        }
+        
+        
+        try {
+            
+            const authUser = JSON.parse(authUserRaw);
+            
+            this.loggedUser = authUser.userName ?? '';
+            
+        } catch (error) {
+            
+            console.error('Error parsing auth user', error);
+            
+        }
+        
+    }
+  
+  
+  
+  
   
   openMenus: { [key: string]: boolean } = {
     
@@ -37,5 +88,9 @@ export class NavBarComponent {
     this.openMenus[menu] = !this.openMenus[menu];
     
   }
+  
+  
+  
+  
   
 }
