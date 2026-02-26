@@ -35,6 +35,10 @@ import { ResourceAssignmentMode } from '../../../domain/enums/resource-assignmen
 import { ProjectService } from '../../../core/services/project.service';
 import { EmployeeMonthlyAvailability } from '../../../domain/Entities/employee/employee-monthly-availabilty.model';
 
+
+type DateMode = 'RANGE' | 'DAYS';
+
+
 enum ViewMode {
   CONTRACT = 'contract',
   ODS_LIST = 'ods_list',
@@ -96,6 +100,10 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
   BudgetCategory = BudgetCategory;
   ResourceAssignmentMode = ResourceAssignmentMode;
   Math = Math;
+
+  
+  planDateMode: DateMode = 'RANGE';
+  specificDays: string[] = [];
 
   editingPlanId: number | null = null;
 
@@ -248,6 +256,103 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       return matches;
     });
   }
+  
+  
+  setPlanDateMode(mode : DateMode): void {
+    
+    this.planDateMode = mode;
+    this.specificDays = [];
+    
+    if(mode === 'RANGE') {
+      
+      
+      this.planForm.patchValue({ specificDays: [] });
+      
+      
+    } else {
+      
+      
+      this.planForm.patchValue({ startDate: '', endDate: '', specificDays: [] });
+      
+      
+    }
+    
+    this.formChanges$.next();
+    
+    
+  }
+  
+  
+  toggleSpecificDay(date: string): void {
+    
+    
+    const index = this.specificDays.indexOf(date);
+    
+    if (index === -1) {
+      
+      
+      this.specificDays = [...this.specificDays, date].sort();
+      
+    } else {
+      
+      this.specificDays = this.specificDays.filter(d => d !== date);
+      
+    }
+    
+    this.planForm.patchValue({ specificDays: this.specificDays });
+    
+    this.formChanges$.next();
+    
+    
+  }
+  
+  
+  isDaySelected(date: string): boolean {
+    
+    return this.specificDays.includes(date);
+    
+  }
+  
+  
+  
+  getCalendarDays(year: number, month: number): { date:string; dayNum: number; inOdsRange: boolean }[] {
+    
+    const days: { date: string; dayNum: number; inOdsRange: boolean }[] = [];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const ods = this.serviceOrders[this.currentOdsIndex];
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const inRange = ods?.startDate && ods?.endDate
+        ? dateStr >= ods.startDate && dateStr <= ods.endDate
+        : true;
+      days.push({ date: dateStr, dayNum: d, inOdsRange: inRange });
+    }
+    
+    return days;
+    
+    
+  }
+  
+  calendarYear: number = new Date().getFullYear();
+  calendarMonth: number = new Date().getMonth();
+  
+  
+  prevMonth(): void {
+    if (this.calendarMonth === 0) { this.calendarMonth = 11; this.calendarYear--; }
+    else this.calendarMonth--;
+  }
+
+  nextMonth(): void {
+    if (this.calendarMonth === 11) { this.calendarMonth = 0; this.calendarYear++; }
+    else this.calendarMonth++;
+  }
+
+  get calendarFirstDayOffset(): number {
+    return new Date(this.calendarYear, this.calendarMonth, 1).getDay();
+  }
+  
+  
 
   onOdsSameDatesChange(): void {
     if (this.odsSameDatesAsContract) {
@@ -473,7 +578,8 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       selectedEquipmentIds: [[]],
       selectedVehicleIds: [[]],
       budgetItems: [[]],
-      notes: ['']
+      notes: [''],
+      specificDays: [[]]
     });
 
 
@@ -1385,8 +1491,6 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
     const planData: any = {
       planCode: this.planForm.value.planCode,
       planName: this.planForm.value.planName,
-      startDate: this.planForm.value.startDate,
-      endDate: this.planForm.value.endDate,
       matrixIds: this.planForm.value.selectedMatrixIds,
       matrixNames: selectedMatrices.map(m => m.matrixName).join(', '),
       coordinatorId: Number(this.planForm.value.coordinatorId),
@@ -1394,6 +1498,16 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       hasReport: this.planForm.value.hasReport,
       hasGDB: this.planForm.value.hasGDB,
       sites: sites,
+      
+      
+      dateMode: this.planDateMode,
+      
+      specificDays: this.planDateMode === 'DAYS' ? this.specificDays : [],
+      
+      startDate: this.planDateMode === 'RANGE' ? this.planForm.value.startDate : (this.specificDays[0] || null),
+      
+      endDate: this.planDateMode === 'RANGE' ? this.planForm.value.endDate : (this.specificDays[this.specificDays.length - 1] || null),
+      
       budget: {
         chCode: this.planForm.value.chCode || this.projectChCode,
         items: this.budgetItems,
@@ -1574,6 +1688,10 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
 
     this.sitesArray.clear();
     this.addSite();
+    
+    this.planDateMode = 'RANGE';
+    this.specificDays = [];
+    
   }
 
 
@@ -1859,8 +1977,14 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
         return {
           planCode: plan.planCode,
           planName: plan.planName || plan.planCode,
-          startDate: plan.startDate || null,
-          endDate: plan.endDate || null,
+          dateMode: plan.dateMode || 'RANGE',
+          specificDays: plan.specificDays || [],
+          startDate: plan.dateMode === 'DAYS'
+            ? (plan.specificDays?.[0] || null)
+            : (plan.startDate || null),
+          endDate: plan.dateMode === 'DAYS'
+            ? (plan.specificDays?.[plan.specificDays.length - 1] || null)
+            : (plan.endDate || null),
           coordinatorId: plan.coordinatorId,
           sites: plan.sites.map((site: any) => ({
             name: site.name,
@@ -2238,6 +2362,17 @@ export class ProjectWizardComponent implements OnInit, OnDestroy {
       totalSites: plan.sites?.length || 1,
       budgetItems: plan.budget?.items || []
     });
+    
+    this.planDateMode = plan.dateMode || 'RANGE';
+    this.specificDays = plan.specificDays || [];
+    this.calendarMonth = this.specificDays.length > 0
+      ? new Date(this.specificDays[0]).getMonth()
+      : new Date().getMonth();
+    this.calendarYear = this.specificDays.length > 0
+      ? new Date(this.specificDays[0]).getFullYear()
+      : new Date().getFullYear();
+    
+    
 
     (plan.sites || []).forEach((site: any) => {
       const siteGroup = this.fb.group({
